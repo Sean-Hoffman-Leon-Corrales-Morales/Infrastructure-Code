@@ -1,0 +1,10 @@
+Usage: executor [options]
+This module will install and configure the DevOps infrastructure, 
+including: DockerEE, UCP. Docker Trusted Registry, as well as the 
+initial Jenkins container.
+
+Mandatory arguments to long options are mandatory for short options too.
+	-p, --password			password for UCP and DTR user.
+	-l, --license			patch to DockerEE license.
+	-m, --modules			python modules to download for this 
+					module.
