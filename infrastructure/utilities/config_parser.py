@@ -18,7 +18,7 @@ class config_parser(object):
 #              config file into a dictionary. 
 #===============================================================================
     def __init__(self, logger, configFilePath):
-        config_dict = None
+        self.config_dict = None
         logger.debug('+++ Beginning parse of configuration file +++')
         logger.debug('Opening file: ' + configFilePath)
       
@@ -32,4 +32,4 @@ class config_parser(object):
           
         logger.debug('+++ Successfully finished parse of configuration file +++')
       
-        return config_dict    
+        return self.config_dict    

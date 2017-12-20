@@ -6,7 +6,7 @@ Licensor: Leon F Corrales Morales & Sean P Hoffman
 
 Software: 1.0
 
-Use Limitation: 4 users
+Use Limitation: 2 users
 
 License Grant. Licensor hereby grants to each recipient of the Software (“you”) a non-exclusive, non-transferable, royalty-free and fully-paid-up license, under all of the Licensor’s copyright and patent rights, to use, copy, distribute, prepare derivative works of, publicly perform and display the Software, subject to the Use Limitation and the conditions set forth below.
 

@@ -9,7 +9,8 @@ import infrastructure.utilities.config_parser as parser
 import infrastructure.utilities.config_logging as setupLogging
 import infrastructure.installers.docker.docker_node_installer_remote as installNode
 import sys
-from infrastructure.utilities import config_logging
+from distutils.core import setup
+
 
 # YAML_CONFIG_FILE_PATH = 'C:/Users/shoffman/software/eclipse/workspace/BaseInstaller/configuration/base.yaml'
 YAML_CONFIG_FILE_PATH = 'configuration/base.yaml'
@@ -18,7 +19,7 @@ LOGGING_CONFIG_FILE_PATH = 'configuration/logging.yaml'
 config = None
 
 if __name__ == '__main__':
-    logger = config_logging(LOGGING_CONFIG_FILE_PATH)
+    logger = setupLogging.config_logging().getLogger(LOGGING_CONFIG_FILE_PATH)
     password = sys.argv[0]
     dockerPassword = sys.argv[1]
     licenseFilePath = sys.argv[2]
@@ -42,6 +43,5 @@ if __name__ == '__main__':
     logger.debug('DTR Count ' + str(dtrCount))
     logger.debug('Worker Total Count ' + str(workers['DevCount'] + workers['QaCount'] + workers['StressCount'] + workers['DmzCount'] + workers['ProdCount']))
     logger.debug('Manager Total Count ' + str(managers['DevCount'] + managers['QaCount'] + managers['StressCount'] + managers['DmzCount'] + managers['ProdCount']))
-    config = parser(logger, YAML_CONFIG_FILE_PATH)
-    
-    installNode(logger, config, managers, workers, dtrCount, password, dockerPassword, licenseFilePath)
+    config = parser.config_parser(logger, YAML_CONFIG_FILE_PATH)
+    installNode.installNode(logger, config, managers, workers, dtrCount, password, dockerPassword, licenseFilePath)

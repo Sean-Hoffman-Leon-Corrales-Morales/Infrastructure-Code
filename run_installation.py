@@ -34,6 +34,8 @@ def runPreInstall(inputs):
     parser.add_argument('-mp', '--managersProd', dest='managerProdCount', type=int, help='the number of manager nodes to install.')
 
     args = parser.parse_args()
+    if not args.osPassword: #handle a no password argument
+        args.osPassword = ""
     password = args.osPassword
     dockerPassword = args.dockerPassword
     licenseFilePath = args.licenseFilePath

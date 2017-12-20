@@ -8,6 +8,9 @@ import requests, json
 
 
 class http_request(object):
+
+    def __init__(self):
+        self.response = None
     
 #===============================================================================
 # Paramters:
@@ -26,14 +29,14 @@ class http_request(object):
         logger.debug('RESPONSE: ' + str(response))
         if response.status_code != 200:
             logger.error('Received HTTP ' + str(response.status_code))
-            response = None
+            self.response = None
       
         else:
             logger.debug('Received HTTP ' + str(response.status_code))
-            response = response.json()
-            logger.debug('Response: ' + str(response))
+            self.response = response.json()
+            logger.debug('Response: ' + str(self.response))
         
-        return response
+        return self.response
 
 # REMOVE THIS IF WE CAN
     def postO(self, logger, url, payload, headers):
@@ -49,14 +52,14 @@ class http_request(object):
   
         if response.status_code != 200:
             logger.error('Received HTTP ' + str(response.status_code))
-            response = None
+            self.response = None
   
         else:
             logger.debug('Received HTTP ' + str(response.status_code))
-            response = response.json()
+            self.response = response.json()
             logger.debug('RESPONSE: ' + str(response))
   
-        return response
+        return self.response
 
 #===============================================================================
 # Paramters:
@@ -74,11 +77,11 @@ class http_request(object):
         logger.debug('RESPONSE: ' + str(response))
         if response.status_code != 200:
             logger.error('Received HTTP ' + str(response.status_code))
-            response = None
+            self.response = None
     
         else:
             logger.debug('Received HTTP ' + str(response.status_code))
-            response = response.json()
+            self.response = response.json()
             logger.debug('Response: ' + str(response))
     
         return response

@@ -4,8 +4,8 @@ Created on Nov 28, 2017
 @author: shoffman, LFCM
 '''
 
-import infrastructure.utilities.http_request as http_request
-import infrastructure.installers.aws.provisioner as provisioner
+from infrastructure.utilities.http_request import http_request
+from infrastructure.installers.aws.provisioner import provisioner
 from infrastructure.installers.docker.dockeree_installer_remote import executeDockerInstall
 from infrastructure.installers.docker.ucp_installer_remote import installUCP
 from infrastructure.installers.docker.dtr_installer_remote import installDTR
