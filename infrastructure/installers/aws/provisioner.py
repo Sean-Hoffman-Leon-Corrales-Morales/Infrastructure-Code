@@ -99,8 +99,10 @@ class provisioner(object):
     def setWorkers(self, count, zone):
         for i in range(1, count + 1):
             awsInst = self.createWorker(i, zone)
-            self.logger.debug("adding " + str(awsInst[0].private_ip_address))
+            self.logger.debug("adding " + str(awsInst[0].id))
             awsInst[0].wait_until_running()
+            #client = boto3.client('ec2')
+            
             self.workers.append(awsInst[0].private_ip_address)
 
 #==============================================================================
@@ -113,9 +115,11 @@ class provisioner(object):
     def setManagers(self, count, zone):
         for i in range(1, count + 1):
             awsInst = self.createManager(i, zone)
-            self.logger.debug("adding " + str(awsInst[0].private_ip_address))
+            self.logger.debug("adding " + str(awsInst[0].id))
             awsInst[0].wait_until_running()
-            
+            client = boto3.client('ec2', self.config['aws.region'])
+            waiter = client.get_waiter('instance_status_ok')
+            waiter.wait(InstanceIds=[str(awsInst[0].id)], IncludeAllInstances=True)
             self.managers.append(awsInst[0].private_ip_address)
             
 #==============================================================================
@@ -139,7 +143,7 @@ class provisioner(object):
                                      'ResourceType': 'instance',
                                         'Tags': [{
                                             'Key': 'Name',
-                                            'Value': 'dockerNode-' + str(count)}
+                                            'Value': 'dockerNode-' + zone + '-' + str(count)}
                                         ]}
                                  ])
             
@@ -166,7 +170,7 @@ class provisioner(object):
                                      'ResourceType': 'instance',
                                         'Tags': [{
                                             'Key': 'Name',
-                                            'Value': 'dockerManager-' + str(count)}
+                                            'Value': 'dockerManager-'+ zone + '-' + str(count)}
                                         ]}
                                  ])
         return newInst
