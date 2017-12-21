@@ -35,7 +35,8 @@ class installNode(object):
         dtrCounter = 1
         ucpInstalled = False
         ucpUrl = None
-        aws = provisioner(config)
+        logger.debug('logger works in installNode Class')
+        aws = provisioner(config, logger)
         aws.provisionManagers(managers['QaCount'], managers['DevCount'], managers['StressCount'],
                                            managers['DmzCount'], managers['ProdCount'])
         managerHosts = aws.getManagers()

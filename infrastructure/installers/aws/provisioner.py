@@ -17,10 +17,13 @@ class provisioner(object):
 # Description: This class is responsible for the provisioning AWS EC2 and S3
 #              instances using boto3.  
 #==============================================================================
-    def __init__(self, config):
+    def __init__(self, config, logger):
         self.workers = []
         self.managers = []
-        self.config = config.config_dict
+        self.config = config
+        for key, value in self.config.iteritems():
+            logger.debug('- ' + key + ': ' + str(value))
+        logger.debug("config is now " + str(self.config))
 
 #==============================================================================
 # Description: Simple getters for managers and works

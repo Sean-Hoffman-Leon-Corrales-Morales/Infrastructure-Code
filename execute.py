@@ -44,4 +44,7 @@ if __name__ == '__main__':
     logger.debug('Worker Total Count ' + str(workers['DevCount'] + workers['QaCount'] + workers['StressCount'] + workers['DmzCount'] + workers['ProdCount']))
     logger.debug('Manager Total Count ' + str(managers['DevCount'] + managers['QaCount'] + managers['StressCount'] + managers['DmzCount'] + managers['ProdCount']))
     config = parser.config_parser(logger, YAML_CONFIG_FILE_PATH)
-    installNode.installNode(logger, config, managers, workers, dtrCount, password, dockerPassword, licenseFilePath)
+    logger.debug('config config_dict type si ' + str(type(config.config_dict)))
+    for key, value in config.config_dict.iteritems():
+        logger.debug('- ' + key + ': ' + str(value))
+    installNode.installNode(logger, config.config_dict, managers, workers, dtrCount, password, dockerPassword, licenseFilePath)
