@@ -62,8 +62,10 @@ def executeRemoteCommand(logger, config, cmd, host, password):
     env.user = config['docker.user']
     if password: 
         env.password = password
+        logger.debug("Password is set")
     elif not password:
-        env.key_filename = config['aws.pemFile']
+        env.key_filename = [str(config['aws.pemFile'])]
+        logger.debug("Using aws pem file" + config['aws.pemFile'])
     cmd = 'sudo ' + cmd
     
     logger.debug('Host: ' + host)

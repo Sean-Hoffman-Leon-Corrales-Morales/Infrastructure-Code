@@ -21,9 +21,10 @@ class provisioner(object):
         self.workers = []
         self.managers = []
         self.config = config
+        self.logger = logger
         for key, value in self.config.iteritems():
             logger.debug('- ' + key + ': ' + str(value))
-        logger.debug("config is now " + str(self.config))
+        logger.debug("config in provisioner is now " + str(self.config))
 
 #==============================================================================
 # Description: Simple getters for managers and works
@@ -98,7 +99,8 @@ class provisioner(object):
     def setWorkers(self, count, zone):
         for i in range(1, count + 1):
             awsInst = self.createWorker(i, zone)
-            awsInst[0].wait_for_started()
+            self.logger.debug("adding " + str(awsInst[0].private_ip_address))
+            awsInst[0].wait_until_running()
             self.workers.append(awsInst[0].private_ip_address)
 
 #==============================================================================
@@ -111,7 +113,9 @@ class provisioner(object):
     def setManagers(self, count, zone):
         for i in range(1, count + 1):
             awsInst = self.createManager(i, zone)
-            awsInst[0].wait_for_started()
+            self.logger.debug("adding " + str(awsInst[0].private_ip_address))
+            awsInst[0].wait_until_running()
+            
             self.managers.append(awsInst[0].private_ip_address)
             
 #==============================================================================

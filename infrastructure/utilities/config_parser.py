@@ -23,13 +23,14 @@ class config_parser(object):
         logger.debug('Opening file: ' + configFilePath)
       
         with open(configFilePath) as config:
-            config_dict = load(config)
+            self.config_dict = load(config)
             logger.debug('Config file loaded successfully')
       
         logger.debug('Config file values:')  
-        for key, value in config_dict.iteritems():
+        for key, value in self.config_dict.iteritems():
             logger.debug('- ' + key + ': ' + str(value))
           
         logger.debug('+++ Successfully finished parse of configuration file +++')
-      
+    
+    def getConfig(self):
         return self.config_dict    
