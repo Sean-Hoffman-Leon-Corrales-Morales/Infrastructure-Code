@@ -20,7 +20,7 @@ class provisioner(object):
     def __init__(self, config):
         self.workers = []
         self.managers = []
-        self.config = config
+        self.config = config.config_dict
 
 #==============================================================================
 # Description: Simple getters for managers and works

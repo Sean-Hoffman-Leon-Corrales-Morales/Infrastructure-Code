@@ -36,7 +36,7 @@ class installNode(object):
         ucpInstalled = False
         ucpUrl = None
         aws = provisioner(config)
-        aws.provisioner.provisionManagers(managers['QaCount'], managers['DevCount'], managers['StressCount'],
+        aws.provisionManagers(managers['QaCount'], managers['DevCount'], managers['StressCount'],
                                            managers['DmzCount'], managers['ProdCount'])
         managerHosts = aws.getManagers()
         managerCount = len(managerHosts)
@@ -64,7 +64,7 @@ class installNode(object):
             
                 managerCounter += 1
         
-        aws.provisioner.provisionWorkers()
+        aws.provisioner.provisionWorkers(config)
         workerHosts = aws.getManagers(workers['QaCount'], workers['DevCount'], workers['StressCount'],
                                        workers['DmzCount'], workers['ProdCount'])
         workerCount = len(managerHosts)
