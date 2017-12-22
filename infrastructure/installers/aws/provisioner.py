@@ -20,6 +20,8 @@ class provisioner(object):
     def __init__(self, config, logger):
         self.workers = []
         self.managers = []
+        self.managersId = []
+        self.worksId = []
         self.config = config
         self.logger = logger
         for key, value in self.config.iteritems():
@@ -34,7 +36,12 @@ class provisioner(object):
     
     def getWorkers(self):
         return self.workers
-
+    
+    def getManagersId(self):
+        return self.managersId
+    
+    def getWorkersId(self):
+        return self.worksId
 #==============================================================================
 # Paramters:
 #   qaCountWorker    - This is the amount of EC2 docker-ee workers instances
@@ -63,6 +70,7 @@ class provisioner(object):
         return self.workers
 
 #==============================================================================
+# @Depricated 
 # Paramters:
 #   qaCountWorker    - This is the amount of EC2 docker-ee managers instances
 #                      to create in QA.
@@ -117,7 +125,9 @@ class provisioner(object):
             awsInst = self.createManager(i, zone)
             self.logger.debug("adding " + str(awsInst[0].id))
             awsInst[0].wait_until_running()
-            client = boto3.client('ec2', self.config['aws.region'])
+            client = boto3.client('ec2',region_name=self.config['aws.region'],
+                                   aws_access_key_id=self.config['aws.access.key'],
+                                   aws_secret_access_key=self.config['aws.secret.key'])
             waiter = client.get_waiter('instance_status_ok')
             waiter.wait(InstanceIds=[str(awsInst[0].id)], IncludeAllInstances=True)
             self.managers.append(awsInst[0].private_ip_address)
