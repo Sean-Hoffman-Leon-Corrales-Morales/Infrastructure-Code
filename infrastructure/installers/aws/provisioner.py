@@ -63,9 +63,9 @@ class provisioner(object):
         
         self.setWorkers(devCountWorker, self.config['aws.dev'])
         self.setWorkers(qaCountWorker, self.config['aws.qa'])
-        self.setworkers(stressCountWorker, self.config['aws.stress'])
-        self.setworkers(dmzCountWorker, self.config['aws.dmz'])
-        self.setworkers(prodCountWorker, self.config['aws.prod'])
+        self.setWorkers(stressCountWorker, self.config['aws.stress'])
+        self.setWorkers(dmzCountWorker, self.config['aws.dmz'])
+        self.setWorkers(prodCountWorker, self.config['aws.prod'])
             
         return self.workers
 
@@ -109,10 +109,14 @@ class provisioner(object):
             awsInst = self.createWorker(i, zone)
             self.logger.debug("adding " + str(awsInst[0].id))
             awsInst[0].wait_until_running()
-            #client = boto3.client('ec2')
-            
+            client = boto3.client('ec2',region_name=self.config['aws.region'],
+                                   aws_access_key_id=self.config['aws.access.key'],
+                                   aws_secret_access_key=self.config['aws.secret.key'])
+            waiter = client.get_waiter('instance_status_ok')
+            waiter.wait(InstanceIds=[str(awsInst[0].id)], IncludeAllInstances=True)
             self.workers.append(awsInst[0].private_ip_address)
-
+            self.worksId.append(awsInst[0].id)
+            
 #==============================================================================
 # Paramters:
 #   count    - Number AWS instances to loop through
@@ -131,7 +135,7 @@ class provisioner(object):
             waiter = client.get_waiter('instance_status_ok')
             waiter.wait(InstanceIds=[str(awsInst[0].id)], IncludeAllInstances=True)
             self.managers.append(awsInst[0].private_ip_address)
-            
+            self.managersId.append(awsInst[0].id)
 #==============================================================================
 # Paramters:
 #   count    - Number AWS instances to loop through
@@ -143,7 +147,19 @@ class provisioner(object):
     def createWorker(self, count, zone): 
         if count > 0: 
             ec2 = boto3.resource('ec2', self.config['aws.region'], None , None , None , None , self.config['aws.access.key'], self.config['aws.secret.key'], None, None)
-            newInst = ec2.create_instances(ImageId=self.config['aws.ami'],
+            newInst = ec2.create_instances(
+                                 BlockDeviceMappings=[
+                                    {
+                                        'DeviceName': '/dev/xvdf',
+                                        'VirtualName': 'dockerWorker-'+ str(count) + '-' + zone + '-Drive',
+                                        'Ebs': {
+                                            'DeleteOnTermination': True,
+                                            'VolumeSize': 30,
+                                            'VolumeType': 'gp2'
+                                        },
+                                    },
+                                ],
+                                 ImageId=self.config['aws.ami'],
                                  InstanceType=self.config['aws.worker'],
                                  SecurityGroupIds=[self.config['aws.securityGroupId']],
                                  MinCount=1,
@@ -170,7 +186,19 @@ class provisioner(object):
 #==============================================================================     
     def createManager(self, count, zone): 
         ec2 = boto3.resource('ec2', self.config['aws.region'], None , None , None , None , self.config['aws.access.key'], self.config['aws.secret.key'], None, None)
-        newInst = ec2.create_instances(ImageId=self.config['aws.ami'],
+        newInst = ec2.create_instances(
+                                    BlockDeviceMappings=[
+                                    {
+                                        'DeviceName': '/dev/xvdf',
+                                        'VirtualName': 'dockerManager-'+ str(count) + '-' + zone + '-Drive',
+                                        'Ebs': {
+                                            'DeleteOnTermination': True,
+                                            'VolumeSize': 30,
+                                            'VolumeType': 'gp2'
+                                        },
+                                    },
+                                ],
+                                 ImageId=self.config['aws.ami'],
                                  InstanceType=self.config['aws.manager'],
                                  SecurityGroupIds=[self.config['aws.securityGroupId']],
                                  MinCount=1,

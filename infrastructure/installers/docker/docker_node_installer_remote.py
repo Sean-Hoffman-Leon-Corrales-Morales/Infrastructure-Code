@@ -13,7 +13,6 @@ import infrastructure.installers.core.os_executor as os_executor
 
 
 class installNode(object):
-
 #===============================================================================
 # Paramters:
 #   logger        - This is the logger used to record log messages.
@@ -45,19 +44,19 @@ class installNode(object):
         for host in managerHosts:
             logger.debug('Connecting to host ' + host)
             logger.debug('Building ' + str(managerCount) + ' manager nodes')           
-            isExecuteSuccess = executeDockerInstall(logger, config, host, password)
+            isExecuteSuccess = executeDockerInstall( logger, config, host, password)
 
             if managerCounter <= managerCount: 
             
                 if isExecuteSuccess is True and ucpInstalled is False:
                     logger.debug('Successfully installed Docker EE')
-                    isExecuteSuccess = installUCP(logger, config, ucpPassword, licenseFilePath, host, password)
+                    isExecuteSuccess = installUCP( logger, config, ucpPassword, licenseFilePath, host, password)
     
                 elif isExecuteSuccess is False:
                     logger.error('An error was encountered installing Docker EE')
     
                 elif ucpInstalled is True:
-                    isExecuteSuccess = addManagerNode(logger, config, ucpUrl, ucpPassword, password, host)  # <-- ucp url
+                    isExecuteSuccess = addManagerNode(self, logger, config, ucpUrl, ucpPassword, password, host)  # <-- ucp url
     
                 if isExecuteSuccess is True and ucpInstalled is False:
                     ucpUrl = 'https://' + host
@@ -65,20 +64,18 @@ class installNode(object):
             
                 managerCounter += 1
         
-        aws.provisioner.provisionWorkers(config)
-        workerHosts = aws.getManagers(workers['QaCount'], workers['DevCount'], workers['StressCount'],
+        workerHosts = aws.provisionWorkers(workers['QaCount'], workers['DevCount'], workers['StressCount'],
                                        workers['DmzCount'], workers['ProdCount'])
-        workerCount = len(managerHosts)
-        logger.debug('building ' + str(managerCount) + ' Docker managers')
+        workerCount = len(workerHosts)
+        logger.debug('building ' + str(workerCount) + ' Docker managers')
         for host in workerHosts: 
-            logger.debug('Connecting to host ' + host)
-            logger.debug('Building ' + str(workerCount) + ' worker nodes')  
+            logger.debug('Connecting to host ' + host + ' counter is at: ' + str(workerCounter))
             isExecuteSuccess = executeDockerInstall(logger, config, host, password)
             
             if workerCounter <= workerCount:
-
                 if isExecuteSuccess is True:
-                    isExecuteSuccess = addWorkerNode(logger, config, ucpUrl, ucpPassword, password, host)  # <-- ucp url
+                    logger.debug('logger:' + str(logger) + ' config: ' + str(config) + ' ucpUrl' + str(ucpUrl) + ' ucpPassword ' + ucpPassword + ' host ' + host)
+                    isExecuteSuccess = addWorkerNode(self, logger, config, ucpUrl, ucpPassword, password, host)  # <-- ucp url
                 
                 else:
                     logger.error('An error was encountered installing Docker EE')
@@ -142,13 +139,15 @@ def getManagerNodeList(self, logger, ucpUrl, authToken):
     response = self.requester.get(logger, requestUrl, headers)
     
     if response != None:
+        logger.debug("response: " + str(response))
         for manager in response:
+            logger.debug('manager ' + str(manager) + ' of type:' + type(manager))
             if 'ManagerStatus' in manager.keys():
                 managerIp = manager['ManagerStatus']['Addr']
                 managers.append(managerIp) 
       
             else:
-                logger.error('An error was encountered getting auth token. ' + str(response))   
+                logger.error('An error was encountered in getting the manager list. ' + str(response))   
     
     return managers
 
@@ -168,9 +167,9 @@ def getManagerNodeList(self, logger, ucpUrl, authToken):
 #===============================================================================
 def addWorkerNode(self, logger, config, ucpUrl, ucpPassword, password, host):
     logger.debug('+++ Beginning creation of worker node +++')
-    authToken = getAuthToken(logger, config, ucpUrl, ucpPassword)
+    authToken = getAuthToken(self, logger, config, ucpUrl, ucpPassword)
     headers = {'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json'}
-    managers = getManagerNodeList(logger, ucpUrl, authToken)
+    managers = getManagerNodeList(self, logger, ucpUrl, authToken)
     
     swarmToken = None
     isExecuteSuccess = False
@@ -195,7 +194,7 @@ def addWorkerNode(self, logger, config, ucpUrl, ucpPassword, password, host):
 
     return isExecuteSuccess
 
-    
+
 #===============================================================================
 # Paramters:
 #   logger        - This is the logger used to record log messages.
@@ -211,9 +210,9 @@ def addWorkerNode(self, logger, config, ucpUrl, ucpPassword, password, host):
 #===============================================================================
 def addManagerNode(self, logger, config, ucpUrl, ucpPassword, password, host):
     logger.debug('+++ Beginning creation of manager node +++')
-    authToken = getAuthToken(logger, config, ucpUrl, ucpPassword)
+    authToken = getAuthToken(self, logger, config, ucpUrl, ucpPassword)
     headers = {'Authorization': 'Bearer ' + authToken}
-    managers = getManagerNodeList(logger, ucpUrl, authToken)
+    managers = getManagerNodeList(self, logger, ucpUrl, authToken)
     
     swarmToken = None
     isExecuteSuccess = False
