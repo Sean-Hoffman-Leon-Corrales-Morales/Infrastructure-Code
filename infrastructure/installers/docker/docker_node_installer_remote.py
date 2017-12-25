@@ -118,7 +118,6 @@ def getAuthToken(self, logger, config, ucpUrl, ucpPassword):
       
     else:
         logger.error('An error was encountered getting auth token. ' + str(response))   
-
     return authToken
 
 
@@ -137,18 +136,16 @@ def getManagerNodeList(self, logger, ucpUrl, authToken):
     managers = []
     requestUrl = ucpUrl + '/nodes'
     response = self.requester.get(logger, requestUrl, headers)
-    
     if response != None:
-        logger.debug("response: " + str(response))
+        logger.debug("response: " + str(response) + " of type: " + str(type(response)))
         for manager in response:
-            logger.debug('manager ' + str(manager) + ' of type:' + type(manager))
             if 'ManagerStatus' in manager.keys():
                 managerIp = manager['ManagerStatus']['Addr']
                 managers.append(managerIp) 
-      
+            
             else:
                 logger.error('An error was encountered in getting the manager list. ' + str(response))   
-    
+            
     return managers
 
 
@@ -176,7 +173,7 @@ def addWorkerNode(self, logger, config, ucpUrl, ucpPassword, password, host):
     requestUrl = ucpUrl + '/swarm'
     output = None
     response = self.requester.get(logger, requestUrl, headers)
-    
+
     if response != None:
         swarmToken = response['JoinTokens']['Worker']
         logger.debug('Using worker swarm token: ' + swarmToken)
@@ -191,7 +188,7 @@ def addWorkerNode(self, logger, config, ucpUrl, ucpPassword, password, host):
         logger.debug('+++ Successfully added a worker node +++')
     else:
         logger.error('An error was encountered adding a worker node')
-
+    
     return isExecuteSuccess
 
 
@@ -236,5 +233,5 @@ def addManagerNode(self, logger, config, ucpUrl, ucpPassword, password, host):
 
     else:
         logger.error('An error was encountered adding a manager node')  
-
+        
     return isExecuteSuccess

@@ -150,7 +150,7 @@ class provisioner(object):
             newInst = ec2.create_instances(
                                  BlockDeviceMappings=[
                                     {
-                                        'DeviceName': '/dev/xvdf',
+                                        'DeviceName': self.config['block.disk.path'],
                                         'VirtualName': 'dockerWorker-'+ str(count) + '-' + zone + '-Drive',
                                         'Ebs': {
                                             'DeleteOnTermination': True,
@@ -189,7 +189,7 @@ class provisioner(object):
         newInst = ec2.create_instances(
                                     BlockDeviceMappings=[
                                     {
-                                        'DeviceName': '/dev/xvdf',
+                                        'DeviceName': self.config['block.disk.path'],
                                         'VirtualName': 'dockerManager-'+ str(count) + '-' + zone + '-Drive',
                                         'Ebs': {
                                             'DeleteOnTermination': True,

@@ -84,4 +84,4 @@ class http_request(object):
             self.response = response.json()
             logger.debug('Response: ' + str(response))
     
-        return response
+        return self.response

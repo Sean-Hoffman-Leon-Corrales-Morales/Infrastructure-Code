@@ -22,42 +22,42 @@ import os
 #              remote host.  
 #==============================================================================
 def executeDockerInstall(logger, config, host, password):
-  isExecuteSuccess = False
-  
-  logger.debug('+++ Beginning environment set up on ' + host + '. +++')
-  isExecuteSuccess = preInstallConfig(logger, config, host, password)
-  
-  if isExecuteSuccess is True:
-    logger.debug('+++ Beginning installation of Docker EE +++')
-    isExecuteSuccess = installDockerEE(logger, config, host, password)
-  
-  else:
-    logger.error('An error was encountered setting the environment up.')
+    isExecuteSuccess = False
     
-  if isExecuteSuccess is True:
-    logger.debug('+++ Successfully finished the installation of Docker EE +++')
-    logger.debug('+++ Beginning the configuration of the logical volume +++')
-    isExecuteSuccess = configLogicalVolume(logger, config, host, password)
-  
-  else:
-    logger.error('An error was encountered installing Docker EE')
-  
-  if isExecuteSuccess is True :
-    logger.debug('+++ Successfully finished the configuration of the logical volume +++')
-    logger.debug('+++ Beginning post installation configuration +++')
-    isExecuteSuccess = postInstallationConfig(logger, config, host, password)
-  
-  else:
-    logger.error('An error was encountered configuring the logical volume')
-  
-  if isExecuteSuccess is True:
-    isExecuteSuccess = True 
-    logger.debug('+++ Successfully finished post installation configuration +++')
-  
-  else:
-    logger.error('An error was encountered carrying out the post installation configuration')
-  
-  return isExecuteSuccess
+    logger.debug('+++ Beginning environment set up on ' + host + '. +++')
+    isExecuteSuccess = preInstallConfig(logger, config, host, password)
+    
+    if isExecuteSuccess is True:
+        logger.debug('+++ Beginning installation of Docker EE +++')
+        isExecuteSuccess = installDockerEE(logger, config, host, password)
+
+    else:
+        logger.error('An error was encountered setting the environment up.')
+
+    if isExecuteSuccess is True:
+        logger.debug('+++ Successfully finished the installation of Docker EE +++')
+        logger.debug('+++ Beginning the configuration of the logical volume +++')
+        isExecuteSuccess = configLogicalVolume(logger, config, host, password)
+
+    else:
+        logger.error('An error was encountered installing Docker EE')
+    
+    if isExecuteSuccess is True :
+        logger.debug('+++ Successfully finished the configuration of the logical volume +++')
+        logger.debug('+++ Beginning post installation configuration +++')
+        isExecuteSuccess = postInstallationConfig(logger, config, host, password)
+
+    else:
+        logger.error('An error was encountered configuring the logical volume')
+
+    if isExecuteSuccess is True:
+        isExecuteSuccess = True 
+        logger.debug('+++ Successfully finished post installation configuration +++')
+
+    else:
+        logger.error('An error was encountered carrying out the post installation configuration')
+    
+    return isExecuteSuccess
 
 
 #==============================================================================
@@ -160,104 +160,104 @@ def installDockerEE(logger, config, host, password):
 # assumes that the Docker daemon is in the stopped state. 
 #===============================================================================
 def configLogicalVolume(logger, config, host, password):
-  isExecuteSuccess = False
-    
-  cmd = 'yum install -y yum-utils device-mapper-persistent-data lvm2'
-  output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
-  
-  if 'error' not in output.lower():
-    cmd = 'pvcreate ' + config['block.disk.path']
-    output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
-  
-  else:
-    logger.debug('An error was encountered installing device-mapper-persistent-data and lvm2 packages')
-  
-  if 'error' not in output.lower():
-    cmd = 'vgcreate docker ' + config['block.disk.path']
-    output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
-  
-  else:
-    logger.debug('An error was encountered creating the physical volume')
-
-  if 'error' not in output.lower():
-    cmd = 'lvcreate --wipesignatures y -n thinpool docker -l 95%VG'
-    output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
-  
-  else:
-    logger.debug('An error was encountered creating the volume group')
-
-  if 'error' not in output.lower():
-    cmd = 'lvcreate --wipesignatures y -n thinpoolmeta docker -l 1%VG'
-    output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
-  
-  else:
-    logger.debug('An error was encountered creating the logical volume thinpool docker')
-
-  if 'error' not in output.lower():
-    cmd = 'lvconvert -y --zero n -c 512K --thinpool docker/thinpool --poolmetadata docker/thinpoolmeta'
-    output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
-  
-  else:
-    logger.debug('An error was encountered creating logical volume thinpoolmeta docker')
-   
-  if 'error' not in output.lower():
-    filePath = config['docker.disk.profile']
-    content = 'activation { \n thin_pool_autoextend_threshold=80 \n thin_pool_autoextend_percent=20 \n }'
-    os_executor.updateFile(logger, filePath, content)
-    
-    src = config['docker.disk.profile']
-    dest = config['bootstrap.user.path'] + config['docker.disk.profile.name']
-    os_executor.transferFile(logger, config, host, password, src, dest)
-    
-    cmd = 'mv ' + dest + ' ' + src
-    output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
-  
-  else:
-    logger.debug('An error was encountered while changing the mirrored volume configuration')
-    
-  if 'error' not in output.lower():
-    cmd = 'lvchange --metadataprofile docker-thinpool docker/thinpool'
-    output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
-  
-  else:
-    logger.debug('An error was encountered while updating the disk profile')
+    isExecuteSuccess = False
       
-  if 'error' not in output.lower():
-    cmd = 'lvs -o+seg_monitor'
+    cmd = 'yum install -y yum-utils device-mapper-persistent-data lvm2'
     output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
-  
-  else:
-    logger.debug('An error was encountered while applying the LVM profile')
-   
-  if 'error' not in output.lower():
-    filePath = config['bootstrap.user.path'] + config['docker.daemon.config.name']
-    content = '{ \n "storage-driver": "devicemapper", \n "storage-opts": [ \n "dm.thinpooldev=/dev/mapper/docker-thinpool", \n "dm.use_deferred_removal=true", \n "dm.use_deferred_deletion=true" \n ]}'
-    os_executor.updateFile(logger, filePath, content)
     
-    src = filePath
-    dest = config['docker.daemon.config']
-    os_executor.transferFile(logger, config, host, password, src, src)
-    
-    cmd = 'mv ' + src + ' ' + dest
-    output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
-  else:
-    logger.debug('An error was encountered while creating a linux virtual server')
-  
-  if 'error' not in output.lower():
-    os.remove(filePath)
-    cmd = 'service docker start'
-    output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
-  
-  else:
-    logger.debug('An error was encountered while updating daemon.json')
+    if 'error' not in output.lower():
+        cmd = 'pvcreate ' + config['block.disk.path']
+        output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
 
-  if 'error' not in output.lower():
-    isExecuteSuccess = True
-  
-  else:
-    logger.debug('An error was encountered starting Docker service')
-    
-  return isExecuteSuccess
+    else:
+        logger.debug('An error was encountered installing device-mapper-persistent-data and lvm2 packages')
+
+    if 'error' not in output.lower():
+        cmd = 'vgcreate docker ' + config['block.disk.path']
+        output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
+
+    else:
+        logger.debug('An error was encountered creating the physical volume')
+
+    if 'error' not in output.lower():
+        cmd = 'lvcreate --wipesignatures y -n thinpool docker -l 95%VG'
+        output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
+
+    else:
+        logger.debug('An error was encountered creating the volume group')
+
+    if 'error' not in output.lower():
+        cmd = 'lvcreate --wipesignatures y -n thinpoolmeta docker -l 1%VG'
+        output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
+
+    else:
+        logger.debug('An error was encountered creating the logical volume thinpool docker')
+
+    if 'error' not in output.lower():
+        cmd = 'lvconvert -y --zero n -c 512K --thinpool docker/thinpool --poolmetadata docker/thinpoolmeta'
+        output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
+
+    else:
+        logger.debug('An error was encountered creating logical volume thinpoolmeta docker')
+
+    if 'error' not in output.lower():
+        filePath = config['docker.disk.profile']
+        content = 'activation { \n thin_pool_autoextend_threshold=80 \n thin_pool_autoextend_percent=20 \n }'
+        os_executor.updateFile(logger, filePath, content)
+        
+        src = config['docker.disk.profile']
+        dest = config['bootstrap.user.path'] + config['docker.disk.profile.name']
+        os_executor.transferFile(logger, config, host, password, src, dest)
+        
+        cmd = 'mv ' + dest + ' ' + src
+        output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
+
+    else:
+        logger.debug('An error was encountered while changing the mirrored volume configuration')
+
+    if 'error' not in output.lower():
+        cmd = 'lvchange --metadataprofile docker-thinpool docker/thinpool'
+        output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
+
+    else:
+        logger.debug('An error was encountered while updating the disk profile')
+          
+    if 'error' not in output.lower():
+        cmd = 'lvs -o+seg_monitor'
+        output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
+
+    else:
+        logger.debug('An error was encountered while applying the LVM profile')
+
+    if 'error' not in output.lower():
+        filePath = config['bootstrap.user.path'] + config['docker.daemon.config.name']
+        content = '{ \n "storage-driver": "devicemapper", \n "storage-opts": [ \n "dm.thinpooldev=/dev/mapper/docker-thinpool", \n "dm.use_deferred_removal=true", \n "dm.use_deferred_deletion=true" \n ]}'
+        os_executor.updateFile(logger, filePath, content)
+        
+        src = filePath
+        dest = config['docker.daemon.config']
+        os_executor.transferFile(logger, config, host, password, src, src)
+        
+        cmd = 'mv ' + src + ' ' + dest
+        output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
+    else:
+        logger.debug('An error was encountered while creating a linux virtual server')
+
+    if 'error' not in output.lower():
+        os.remove(filePath)
+        cmd = 'service docker start'
+        output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
+
+    else:
+        logger.debug('An error was encountered while updating daemon.json')
+
+    if 'error' not in output.lower():
+        isExecuteSuccess = True
+
+    else:
+        logger.debug('An error was encountered starting Docker service')
+
+    return isExecuteSuccess
 
 
 #===============================================================================
@@ -271,29 +271,29 @@ def configLogicalVolume(logger, config, host, password):
 # manage Docker.  It will also configure Docker to start on system start-up. 
 #===============================================================================
 def postInstallationConfig(logger, config, host, password):
-  isExecuteSuccess = False  
-  cmd = 'usermod -a -G docker ' + config['docker.user']
-  output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
-  
-  if 'error' not in output.lower():
-    cmd = 'systemctl enable docker'
-    isExecuteSuccess = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
-  
-  else:
-    logger.debug('An error was encountered while adding docker group to ' + config['docker.user'])
-  
-  if 'error' not in output.lower():
-    ports = config['docker.ports']
-    ports = ports.split(',')
-    os_executor.openFirewallPorts(logger, config, ports, host, password)
-  
-  else:
-    logger.debug('An error was encountered while configuring the Docker service to start on system start')
-
-  if 'error' not in output.lower():
-    isExecuteSuccess = True
-  
-  else:
-    logger.debug('An error was encountered while opening the firewall ports')
+    isExecuteSuccess = False  
+    cmd = 'usermod -a -G docker ' + config['docker.user']
+    output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
     
-  return isExecuteSuccess
+    if 'error' not in output.lower():
+        cmd = 'systemctl enable docker'
+        isExecuteSuccess = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
+    
+    else:
+        logger.debug('An error was encountered while adding docker group to ' + config['docker.user'])
+
+    if 'error' not in output.lower():
+        ports = config['docker.ports']
+        ports = ports.split(',')
+        os_executor.openFirewallPorts(logger, config, ports, host, password)
+
+    else:
+        logger.debug('An error was encountered while configuring the Docker service to start on system start')
+
+    if 'error' not in output.lower():
+        isExecuteSuccess = True
+
+    else:
+        logger.debug('An error was encountered while opening the firewall ports')
+
+    return isExecuteSuccess

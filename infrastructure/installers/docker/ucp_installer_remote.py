@@ -24,24 +24,24 @@ import subprocess
 #              In addition, this installation will happen remotely from a central server. 
 #===============================================================================
 def installUCP(logger, config, ucpPassword, licenseFilePath, host, password):
-  isExecuteSuccess = False
-  
-  logger.debug('+++ Beginning installation of UCP +++')
-  ips = subprocess.check_output(['hostname', '--all-ip-addresses'])  
-  # host = ips.split(' ')[1]
-  
-  src = licenseFilePath
-  dest = config['bootstrap.user.path'] + licenseFilePath.split('/')[-1]
-  os_executor.transferFile(logger, config, host, password, src, dest)
-  
-  cmd = 'docker container run --rm -it --name ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp:2.2.4 install --host-address ' + host + ' --admin-username ' + config['docker.ucp.user'] + ' --admin-password ' + ucpPassword + ' --license "$(cat ' + dest + ')"' 
-  output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
-  
-  if 'error' not in output.lower():
-    isExecuteSuccess = True 
-    logger.debug('+++ Successfully finished installation of UCP +++')
-  
-  else:
-    logger.error('An error was encountered installing the UCP')
-  
-  return isExecuteSuccess
+    isExecuteSuccess = False
+    
+    logger.debug('+++ Beginning installation of UCP +++')
+    ips = subprocess.check_output(['hostname', '--all-ip-addresses'])  
+    # host = ips.split(' ')[1]
+    
+    src = licenseFilePath
+    dest = config['bootstrap.user.path'] + licenseFilePath.split('/')[-1]
+    os_executor.transferFile(logger, config, host, password, src, dest)
+    
+    cmd = 'docker container run --rm -it --name ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp:2.2.4 install --host-address ' + host + ' --admin-username ' + config['docker.ucp.user'] + ' --admin-password ' + ucpPassword + ' --license "$(cat ' + dest + ')"' 
+    output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
+    
+    if 'error' not in output.lower():
+        isExecuteSuccess = True 
+        logger.debug('+++ Successfully finished installation of UCP +++')
+
+    else:
+        logger.error('An error was encountered installing the UCP')
+    
+    return isExecuteSuccess
