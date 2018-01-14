@@ -24,9 +24,6 @@ class provisioner(object):
         self.worksId = []
         self.config = config
         self.logger = logger
-        for key, value in self.config.iteritems():
-            logger.debug('- ' + key + ': ' + str(value))
-        logger.debug("config in provisioner is now " + str(self.config))
 
 #==============================================================================
 # Description: Simple getters for managers and works
@@ -42,6 +39,7 @@ class provisioner(object):
     
     def getWorkersId(self):
         return self.worksId
+    
 #==============================================================================
 # Paramters:
 #   qaCountWorker    - This is the amount of EC2 docker-ee workers instances
@@ -107,7 +105,7 @@ class provisioner(object):
     def setWorkers(self, count, zone):
         for i in range(1, count + 1):
             awsInst = self.createWorker(i, zone)
-            self.logger.debug("adding " + str(awsInst[0].id))
+            self.logger.debug("adding " + str(awsInst[0].id) + " in " + zone)
             awsInst[0].wait_until_running()
             client = boto3.client('ec2',region_name=self.config['aws.region'],
                                    aws_access_key_id=self.config['aws.access.key'],
@@ -116,7 +114,10 @@ class provisioner(object):
             waiter.wait(InstanceIds=[str(awsInst[0].id)], IncludeAllInstances=True)
             self.workers.append(awsInst[0].private_ip_address)
             self.worksId.append(awsInst[0].id)
-            
+            fqdn = 'dockerNode-' + zone + '-' + str(i)
+            self.addRoute53(fqdn, awsInst[0].private_ip_address)
+            self.logger.debug("DNS route: " +str(route53['ChangeInfo']['Id'] + " : " + str(route53['ChangeInfo']['Status']))
+        
 #==============================================================================
 # Paramters:
 #   count    - Number AWS instances to loop through
@@ -136,6 +137,9 @@ class provisioner(object):
             waiter.wait(InstanceIds=[str(awsInst[0].id)], IncludeAllInstances=True)
             self.managers.append(awsInst[0].private_ip_address)
             self.managersId.append(awsInst[0].id)
+            fqdn = 'dockerManager-' + zone + '-' + str(i)
+            route53 = self.addRoute53(fqdn, awsInst[0].private_ip_address)
+            self.logger.debug("DNS route: " +str(route53['ChangeInfo']['Id'] + " : " + str(route53['ChangeInfo']['Status']))
 #==============================================================================
 # Paramters:
 #   count    - Number AWS instances to loop through
@@ -213,3 +217,30 @@ class provisioner(object):
                                  ])
         return newInst
     
+    
+    def addRoute53(self, fqdn, ipAddress ):
+        client = boto3.client('route53')
+        response = client.change_resource_record_sets(
+            HostedZoneId='string',
+            ChangeBatch={
+                'Comment': 'Automated DNS entry.' ,
+                'Changes': [
+                    {
+                        'Action':'UPSERT',
+                        'ResourceRecordSet': {
+                            'Name': fqdn,
+                            'Type': 'A',
+                            'SetIdentifier': fqdn,
+                            'Region': self.config['aws.region'],
+                                'TTL': 180,
+                                'ResourceRecords': [
+                                    {
+                                        'Value': str(ipAddress)
+                                    },
+                                ],
+                            }
+                        },
+                    ]
+                }
+            )
+        return response
