@@ -115,8 +115,9 @@ class provisioner(object):
             self.workers.append(awsInst[0].private_ip_address)
             self.worksId.append(awsInst[0].id)
             fqdn = 'dockerNode-' + zone + '-' + str(i)
-            self.addRoute53(fqdn, awsInst[0].private_ip_address)
-            self.logger.debug("DNS route: " +str(route53['ChangeInfo']['Id'] + " : " + str(route53['ChangeInfo']['Status']))
+            route53 = self.addRoute53(fqdn, awsInst[0].private_ip_address)
+            self.logger.debug("DNS route: " +str(route53['ChangeInfo']['Id']) + " : " + str(route53['ChangeInfo']['Status']))
+        
         
 #==============================================================================
 # Paramters:
@@ -139,7 +140,7 @@ class provisioner(object):
             self.managersId.append(awsInst[0].id)
             fqdn = 'dockerManager-' + zone + '-' + str(i)
             route53 = self.addRoute53(fqdn, awsInst[0].private_ip_address)
-            self.logger.debug("DNS route: " +str(route53['ChangeInfo']['Id'] + " : " + str(route53['ChangeInfo']['Status']))
+            self.logger.debug("DNS route: " +str(route53['ChangeInfo']['Id']) + " : " + str(route53['ChangeInfo']['Status']))
 #==============================================================================
 # Paramters:
 #   count    - Number AWS instances to loop through
@@ -219,23 +220,26 @@ class provisioner(object):
     
     
     def addRoute53(self, fqdn, ipAddress ):
-        client = boto3.client('route53')
+        fqdn = fqdn.replace('-', '.')
+        client = boto3.client('route53',region_name=self.config['aws.region'],
+                                   aws_access_key_id=self.config['aws.access.key'],
+                                   aws_secret_access_key=self.config['aws.secret.key'])
         response = client.change_resource_record_sets(
-            HostedZoneId='string',
+            HostedZoneId=self.config['aws.hostedZone'],
             ChangeBatch={
                 'Comment': 'Automated DNS entry.' ,
                 'Changes': [
                     {
                         'Action':'UPSERT',
                         'ResourceRecordSet': {
-                            'Name': fqdn,
+                            'Name': self.config['aws.domainName'] + fqdn,
                             'Type': 'A',
-                            'SetIdentifier': fqdn,
+                            'SetIdentifier': self.config['aws.domainName'] + fqdn,
                             'Region': self.config['aws.region'],
                                 'TTL': 180,
                                 'ResourceRecords': [
                                     {
-                                        'Value': str(ipAddress)
+                                        'Value': ipAddress
                                     },
                                 ],
                             }
