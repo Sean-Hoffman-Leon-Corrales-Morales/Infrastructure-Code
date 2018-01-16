@@ -232,9 +232,9 @@ class provisioner(object):
                     {
                         'Action':'UPSERT',
                         'ResourceRecordSet': {
-                            'Name': self.config['aws.domainName'] + fqdn,
+                            'Name': fqdn +"." + self.config['aws.domainName'],
                             'Type': 'A',
-                            'SetIdentifier': self.config['aws.domainName'] + fqdn,
+                            'SetIdentifier': fqdn +"."+ self.config['aws.domainName'],
                             'Region': self.config['aws.region'],
                                 'TTL': 180,
                                 'ResourceRecords': [
