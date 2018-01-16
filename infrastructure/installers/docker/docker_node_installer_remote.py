@@ -32,6 +32,7 @@ class installNode(object):
         managerCounter = 1 
         workerCounter = 1  
         dtrCounter = 1
+        awsFlag = True #<===== HARD CODED CHANGE FOR ON-SITE. Need to decide how to handle it in the above classes 
         ucpInstalled = False
         ucpUrl = None
         logger.debug('logger works in installNode Class')
@@ -50,7 +51,10 @@ class installNode(object):
             
                 if isExecuteSuccess is True and ucpInstalled is False:
                     logger.debug('Successfully installed Docker EE')
-                    isExecuteSuccess = installUCP( logger, config, ucpPassword, licenseFilePath, host, password)
+                    if awsFlag is True:
+                        logger.debug("sending to Route53: ucp.*domain -> " + str(host) +":443")
+                        aws.addRoute53("ucp", str(host) +":443")
+                    isExecuteSuccess = installUCP(logger, config, ucpPassword, licenseFilePath, host, password)
     
                 elif isExecuteSuccess is False:
                     logger.error('An error was encountered installing Docker EE')
@@ -84,6 +88,9 @@ class installNode(object):
                     logger.debug('Successfully added worker node to Swarm')
                   
                 if dtrCounter <= dtrCount:
+                    if awsFlag is True:
+                        logger.debug("sending to Route53: dtr.*domain -> " + str(host) +":443")
+                        aws.addRoute53("dtr", str(host) +":443")
                     isExecuteSuccess = installDTR(logger, config, ucpPassword, ucpUrl, host, password)
               
                 if isExecuteSuccess is True:
