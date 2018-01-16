@@ -53,7 +53,7 @@ class installNode(object):
                     logger.debug('Successfully installed Docker EE')
                     if awsFlag is True:
                         logger.debug("sending to Route53: ucp.*domain -> " + str(host) +":443")
-                        aws.addRoute53("ucp", str(host) +":443")
+                        aws.addRoute53("docker.ucp", str(host) +":443")
                     isExecuteSuccess = installUCP(logger, config, ucpPassword, licenseFilePath, host, password)
     
                 elif isExecuteSuccess is False:
@@ -90,7 +90,7 @@ class installNode(object):
                 if dtrCounter <= dtrCount:
                     if awsFlag is True:
                         logger.debug("sending to Route53: dtr.*domain -> " + str(host) +":443")
-                        aws.addRoute53("dtr", str(host) +":443")
+                        aws.addRoute53("docker.dtr", str(host) +":443")
                     isExecuteSuccess = installDTR(logger, config, ucpPassword, ucpUrl, host, password)
               
                 if isExecuteSuccess is True:
