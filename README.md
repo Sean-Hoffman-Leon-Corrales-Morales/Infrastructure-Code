@@ -3,7 +3,8 @@
 ## Usage
 
     python run_installation.py [options]
-
+    
+### Options
 optional arguments:
   `-h` , `--help`            shows help message and CLI parameters. 
   
