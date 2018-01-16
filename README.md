@@ -53,15 +53,15 @@ optional arguments:
 ## Configuration File
 Bellow are fields and break down of each value used in the configuration file. 
 
-- This is the URL of the yum repo that must be added in order to get access to the docker-ee package
+#### This is the URL of the yum repo that must be added in order to get access to the docker-ee package
 
 `docker.ee.url`: The urlkey given to you Docker for license ex: https://storebits.docker.com/ee/centos/sub-bcb3e940-2bc6-4eb0-85a2-3031e1f0508c
 
-- This is the yum repo that must be added to access the docker-ee package
+#### This is the yum repo that must be added to access the docker-ee package
 
 `docker.ee.repo:` docker-ee.repo
 
-- Docker-ee package configuration values. For more information see the Docker EE manual on instalation. 
+#### Docker-ee package configuration values. For more information see the Docker EE manual on instalation. 
 
 `docker.ee.package`: docker-ee
 
@@ -92,7 +92,7 @@ Bellow are fields and break down of each value used in the configuration file.
 `docker.ucp.port`: This is the port that the UCP manager nodes listen on for API requests Ex: 2377
 
 
-- AWS Configuration. Note we are making an assumption that you breaking out zones out by subnet. 
+#### AWS Configuration. Note we are making an assumption that you breaking out zones out by subnet. 
 
 `aws.access.key`: your AWS account access key
 
