@@ -29,7 +29,7 @@ def installDTR(logger, config, ucpPassword, ucpUrl, host, password):
   logger.debug('Beginning installation of DTR.')  
   output = None
   hostname = socket.gethostbyaddr(host)[0]
-  cmd = 'docker container run -it --rm docker/dtr:2.4.0 install --ucp-node ' + hostname + ' --ucp-insecure-tls --ucp-username ' + config['docker.ucp.user'] + ' --ucp-password ' + ucpPassword + ' --ucp-url ' + ucpUrl
+  cmd = 'docker container run -it --rm docker/dtr:2.4.0 install --dtr-external-url ' + hostname + ' --ucp-node ' + hostname + ' --ucp-insecure-tls --ucp-username ' + config['docker.ucp.user'] + ' --ucp-password ' + ucpPassword + ' --ucp-url ' + ucpUrl
   output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
   
   if 'success' in output.lower():

@@ -4,6 +4,7 @@ Created on Nov 28, 2017
 @author: shoffman, LFCM
 '''
 
+import socket
 from infrastructure.utilities.http_request import http_request
 from infrastructure.installers.aws.provisioner import provisioner
 from infrastructure.installers.docker.dockeree_installer_remote import executeDockerInstall
@@ -29,12 +30,13 @@ class installNode(object):
 #===============================================================================
     def __init__(self, logger, config, managers, workers, dtrCount, password, ucpPassword, licenseFilePath):
         self.requester = http_request()
-        managerCounter = 1 
-        workerCounter = 1  
-        dtrCounter = 1
+        managerCounter = 0 
+        workerCounter = 0  
+        dtrCounter = 0
         awsFlag = True #<===== HARD CODED CHANGE FOR ON-SITE. Need to decide how to handle it in the above classes 
         ucpInstalled = False
         ucpUrl = None
+        dtrHost = None
         logger.debug('logger works in installNode Class')
         aws = provisioner(config, logger)
         aws.provisionManagers(managers['QaCount'], managers['DevCount'], managers['StressCount'],
@@ -76,7 +78,7 @@ class installNode(object):
             logger.debug('Connecting to host ' + host + ' counter is at: ' + str(workerCounter))
             isExecuteSuccess = executeDockerInstall(logger, config, host, password)
             
-            if workerCounter <= workerCount:
+            if workerCounter < workerCount:
                 if isExecuteSuccess is True:
                     logger.debug('logger:' + str(logger) + ' config: ' + str(config) + ' ucpUrl' + str(ucpUrl) + ' ucpPassword ' + ucpPassword + ' host ' + host)
                     isExecuteSuccess = addWorkerNode(self, logger, config, ucpUrl, ucpPassword, password, host)  # <-- ucp url
@@ -87,18 +89,26 @@ class installNode(object):
                 if isExecuteSuccess is True:
                     logger.debug('Successfully added worker node to Swarm')
                   
-                if dtrCounter <= dtrCount:
+                if dtrCounter < dtrCount:
                     if awsFlag is True:
                         logger.debug("sending to Route53: dtr.*domain -> " + str(host) +":443")
                         aws.addRoute53("docker.dtr", str(host) +":443")
                     isExecuteSuccess = installDTR(logger, config, ucpPassword, ucpUrl, host, password)
               
-                if isExecuteSuccess is True:
+                if isExecuteSuccess is True and dtrCounter < dtrCount:
                     dtrCounter += 1
               
                 workerCounter += 1
 
-
+                if workerCounter > dtrCounter:
+                    isExecuteSuccess = registerWithDTR(self, logger, config, host, dtrHost, password)
+      
+                if isExecuteSuccess is True:
+                    logger.debug('Successfully installed the worker node')
+        
+                else:
+                    logger.error('An error was encountered installing the worker node')
+                    
 #===============================================================================
 # Paramters:
 #   logger      - This is the logger used to record log messages.
@@ -127,6 +137,78 @@ def getAuthToken(self, logger, config, ucpUrl, ucpPassword):
         logger.error('An error was encountered getting auth token. ' + str(response))   
     return authToken
 
+
+#===============================================================================
+# Paramters:
+#   logger        - This is the logger used to record log messages.
+#   config        - This is the dict of configuration parameters that are obtained from 
+#                   the base.yaml file.
+#   host          - This is the host of the generic worker node.
+#   dtrHost       - This is the host of the dtr node.
+#   password      - This is the password to be to login to remote servers via ssh.
+# Description: This function will register the worker node with the DTR.  It carries
+#              out the following four steps:
+#                1. Download the certs from the DTR.
+#                2. Transfers the certs to the worker node being installed.
+#                3. Updates the ca trust.
+#                4. Restarts the Docker service.
+#===============================================================================
+def registerWithDTR(self, logger, config, host, dtrHost, ucpPassword, password):
+    logger.debug('+++ Beginning registration with DTR +++')
+    hostname = socket.gethostbyaddr(dtrHost)[0]
+    url = 'https://' + hostname + '/ca'
+    certName = hostname + '.crt'
+    downloadLocation = config['download.location'] + '/' + certName
+    isExecuteSuccess = self.requester.downloadFile(logger, url, downloadLocation)
+    output = ''
+    
+    if isExecuteSuccess is True:
+        logger.debug('Transferring certificate to ' + host)
+        dest = '/home/shoffman/' + certName
+        output = os_executor.transferFile(logger, config, host, password, downloadLocation, dest)
+    
+        saveLocation = config['docker.dtr.cert.location'] + '/' + certName  
+        cmd = 'mv ' + dest + ' ' + saveLocation
+        output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
+    
+    else:
+        logger.error('An error was encountered downloading the DTR certificate.')
+  
+    if 'error' not in output.lower():
+        logger.debug('+++ Successfully transferred certificate to ' + host + ' +++')
+        logger.debug('Beginning update of ca trust on ' + host)
+        cmd = 'update-ca-trust'
+        output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
+    
+    else:
+        logger.error('An error was encountered transferring the DTR certificate to ' + host)   
+  
+    if 'error' not in output.lower():
+        logger.debug('+++ Successfully updated the ca trust on the worker node +++')
+        logger.debug('Beginning restart of the Docker service on ' + host)
+        cmd = 'service docker restart'
+        output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
+    
+    else:
+        logger.error('An error was encountered updating the ca trust on ' + host) 
+  
+    if 'error' not in output.lower():
+        logger.debug('Successfully restarted the Docker service on ' + host)
+        cmd = 'docker login -u admin -p' + ucpPassword + ' ' + dtrHost
+        output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
+    
+    else:
+        logger.error('An error was encountered restarting the Docker service on ' + host)
+   
+    if 'error' not in output.lower():
+        isExecuteSuccess = True
+        output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
+    
+    else:
+        logger.error('An error was encountered logging into the DTR on ' + dtrHost)
+    
+    return isExecuteSuccess
+    
 
 #===============================================================================
 # Paramters:
