@@ -93,6 +93,8 @@ class installNode(object):
                     if awsFlag is True:
                         logger.debug("sending to Route53: dtr.*domain -> " + str(host) +":443")
                         aws.addRoute53("docker.dtr", str(host) +":443")
+                    
+                    dtrHost = host
                     isExecuteSuccess = installDTR(logger, config, ucpPassword, ucpUrl, host, password)
               
                 if isExecuteSuccess is True and dtrCounter < dtrCount:
