@@ -95,7 +95,7 @@ class installNode(object):
                         aws.addRoute53("docker.dtr", str(host) +":443")
                     
                     dtrHost = host
-                    isExecuteSuccess = installDTR(logger, config, ucpPassword, ucpUrl, host, password)
+                    isExecuteSuccess = installDTR(logger, config, ucpPassword, ucpUrl, dtrHost, password)
               
                 if isExecuteSuccess is True and dtrCounter < dtrCount:
                     dtrCounter += 1
@@ -157,9 +157,9 @@ def getAuthToken(self, logger, config, ucpUrl, ucpPassword):
 #===============================================================================
 def registerWithDTR(self, logger, config, host, dtrHost, ucpPassword, password):
     logger.debug('+++ Beginning registration with DTR +++')
-    hostname = socket.gethostbyaddr(dtrHost)[0]
-    url = 'https://' + hostname + '/ca'
-    certName = hostname + '.crt'
+    #hostname = socket.gethostbyaddr(dtrHost)[0]
+    url = 'https://' + dtrHost + '/ca'
+    certName = dtrHost + '.crt'
     downloadLocation = config['download.location'] + '/' + certName
     isExecuteSuccess = self.requester.downloadFile(logger, url, downloadLocation)
     output = ''
@@ -196,7 +196,7 @@ def registerWithDTR(self, logger, config, host, dtrHost, ucpPassword, password):
   
     if 'error' not in output.lower():
         logger.debug('Successfully restarted the Docker service on ' + host)
-        cmd = 'docker login -u admin -p' + ucpPassword + ' ' + dtrHost
+        cmd = 'docker login -u ' + config['docker.ucp.user'] + ' -p' + ucpPassword + ' ' + dtrHost
         output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
     
     else:
