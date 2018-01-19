@@ -11,6 +11,7 @@ from infrastructure.installers.docker.dockeree_installer_remote import executeDo
 from infrastructure.installers.docker.ucp_installer_remote import installUCP
 from infrastructure.installers.docker.dtr_installer_remote import installDTR
 import infrastructure.installers.core.os_executor as os_executor
+from pip._vendor.pyparsing import empty
 
 
 class installNode(object):
@@ -92,9 +93,9 @@ class installNode(object):
                 if dtrCounter < dtrCount:
                     if awsFlag is True:
                         logger.debug("sending to Route53: dtr.*domain -> " + str(host) +":443")
-                        aws.addRoute53("docker.dtr", str(host) +":443")
-                    
-                    dtrHost = host
+                        dtrHost = aws.addRoute53("dtr", str(host) +":443")
+                    if dtrHost is empty: 
+                        dtrHost = host
                     isExecuteSuccess = installDTR(logger, config, ucpPassword, ucpUrl, host, password)
               
                 if isExecuteSuccess is True and dtrCounter < dtrCount:

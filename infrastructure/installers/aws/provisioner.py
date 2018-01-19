@@ -6,6 +6,7 @@ Created on Dec 14, 2017
 
 '''
 import boto3
+import time
 
 
 class provisioner(object):
@@ -247,4 +248,7 @@ class provisioner(object):
                     ]
                 }
             )
-        return response
+        #if response.ChangeInfo['Status'] is not 'INSYNC':
+        #    time.sleep(15)
+            
+        return fqdn +"." + self.config['aws.domainName']
