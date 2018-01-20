@@ -12,9 +12,7 @@ import sys
 from distutils.core import setup
 
 
-# YAML_CONFIG_FILE_PATH = 'C:/Users/shoffman/software/eclipse/workspace/BaseInstaller/configuration/base.yaml'
 YAML_CONFIG_FILE_PATH = 'configuration/base.yaml'
-# LOGGING_CONFIG_FILE_PATH = 'C:/Users/shoffman/software/eclipse/workspace/BaseInstaller/configuration/logging.yaml'
 LOGGING_CONFIG_FILE_PATH = 'configuration/logging.yaml'
 config = None
 

@@ -8,7 +8,6 @@ Created on Nov 25, 2017
 from infrastructure.installers.core.pre_install_regimin import installPythonPackages
 import argparse, sys
 
-# LOGGING_CONFIG_FILE_PATH = 'C:/Users/shoffman/software/eclipse/workspace/BaseInstaller/configuration/logging.yaml'
 LOGGING_CONFIG_FILE_PATH = 'configuration/logging.yaml'
 config = None
 

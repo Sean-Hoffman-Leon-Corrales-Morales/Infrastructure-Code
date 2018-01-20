@@ -177,7 +177,7 @@ def registerWithDTR(self, logger, config, host, dtrHost, dtrIp, ucpPassword, pas
     
     if isExecuteSuccess is True:
         logger.debug('Transferring certificate to ' + host)
-        dest = '/home/shoffman/' + certName
+        dest = config['download.location'] + '/' + certName
         output = os_executor.transferFile(logger, config, host, password, downloadLocation, dest)
     
         saveLocation = config['docker.dtr.cert.location'] + '/' + certName  
