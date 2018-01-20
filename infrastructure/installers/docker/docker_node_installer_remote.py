@@ -5,6 +5,7 @@ Created on Nov 28, 2017
 '''
 
 import socket
+import ipaddress
 from infrastructure.utilities.http_request import http_request
 from infrastructure.installers.aws.provisioner import provisioner
 from infrastructure.installers.docker.dockeree_installer_remote import executeDockerInstall
@@ -38,6 +39,7 @@ class installNode(object):
         ucpInstalled = False
         ucpUrl = None
         dtrHost = None
+        dtrIp = None
         logger.debug('logger works in installNode Class')
         aws = provisioner(config, logger)
         aws.provisionManagers(managers['QaCount'], managers['DevCount'], managers['StressCount'],
@@ -94,9 +96,11 @@ class installNode(object):
                     if awsFlag is True:
                         logger.debug("sending to Route53: dtr.*domain -> " + str(host))
                         dtrHost = aws.addRoute53("dtr", str(host))
+                        dtrIp = host
                     if dtrHost is empty: 
                         dtrHost = host
-                    isExecuteSuccess = installDTR(logger, config, ucpPassword, ucpUrl, dtrHost, password)
+                        dtrIp = host
+                    isExecuteSuccess = installDTR(logger, config, ucpPassword, ucpUrl, host, dtrHost, password)
               
                 if isExecuteSuccess is True and dtrCounter < dtrCount:
                     dtrCounter += 1
@@ -104,7 +108,7 @@ class installNode(object):
                 workerCounter += 1
 
                 if workerCounter > dtrCounter:
-                    isExecuteSuccess = registerWithDTR(self, logger, config, host, dtrHost, password)
+                    isExecuteSuccess = registerWithDTR(self, logger, config, host, dtrHost, dtrIp, ucpPassword, password)
       
                 if isExecuteSuccess is True:
                     logger.debug('Successfully installed the worker node')
@@ -156,9 +160,15 @@ def getAuthToken(self, logger, config, ucpUrl, ucpPassword):
 #                3. Updates the ca trust.
 #                4. Restarts the Docker service.
 #===============================================================================
-def registerWithDTR(self, logger, config, host, dtrHost, ucpPassword, password):
+def registerWithDTR(self, logger, config, host, dtrHost, dtrIp, ucpPassword, password):
     logger.debug('+++ Beginning registration with DTR +++')
-    #hostname = socket.gethostbyaddr(dtrHost)[0]
+    # this was dtrHost
+    hostname = socket.gethostbyaddr(dtrIp)[0]
+    
+    # I know this sucks.  But I will remove the additional parameters once we test this and it working.
+    if dtrHost is dtrIp:
+      dtrHost = hostname
+    
     url = 'https://' + dtrHost + '/ca'
     certName = dtrHost + '.crt'
     downloadLocation = config['download.location'] + '/' + certName
