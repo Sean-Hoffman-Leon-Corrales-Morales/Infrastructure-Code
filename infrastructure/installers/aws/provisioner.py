@@ -6,7 +6,7 @@ Created on Dec 14, 2017
 
 '''
 import boto3
-import time
+from datetime import datetime
 
 
 class provisioner(object):
@@ -117,7 +117,7 @@ class provisioner(object):
             self.worksId.append(awsInst[0].id)
             fqdn = 'dockerNode-' + zone + '-' + str(i)
             route53 = self.addRoute53(fqdn, awsInst[0].private_ip_address)
-            self.logger.debug("DNS route: " +str(route53['ChangeInfo']['Id']) + " : " + str(route53['ChangeInfo']['Status']))
+            self.logger.debug("DNS route: " +str(route53))
         
         
 #==============================================================================
@@ -141,7 +141,7 @@ class provisioner(object):
             self.managersId.append(awsInst[0].id)
             fqdn = 'dockerManager-' + zone + '-' + str(i)
             route53 = self.addRoute53(fqdn, awsInst[0].private_ip_address)
-            self.logger.debug("DNS route: " +str(route53['ChangeInfo']['Id']) + " : " + str(route53['ChangeInfo']['Status']))
+            self.logger.debug("DNS route: " + str(route53) )
 #==============================================================================
 # Paramters:
 #   count    - Number AWS instances to loop through
@@ -219,8 +219,15 @@ class provisioner(object):
                                  ])
         return newInst
     
-    
+#==============================================================================
+# Paramters:
+#   fqdn          - DNS name for a resources ex: somthing-somthing -> something.somthing.[aws.domainName]
+#   ipaddress     - IP address of the host being registered for as the resource
+#
+# Description: Used to create a DNS entry using AWS route53.
+#==============================================================================       
     def addRoute53(self, fqdn, ipAddress ):
+        startTime = datetime.now()
         fqdn = fqdn.replace('-', '.')
         client = boto3.client('route53',region_name=self.config['aws.region'],
                                    aws_access_key_id=self.config['aws.access.key'],
@@ -248,7 +255,15 @@ class provisioner(object):
                     ]
                 }
             )
-        #if response.ChangeInfo['Status'] is not 'INSYNC':
-        #    time.sleep(15)
-            
-        return fqdn +"." + self.config['aws.domainName']
+        #this wait is kinda costly/inefficient beacuse it's waiting one by one.
+        waiter = client.get_waiter('resource_record_sets_changed')
+        waiter.wait(
+            Id=response['ChangeInfo']['Id'],
+            WaiterConfig={
+                'Delay': 15,
+                'MaxAttempts': 40
+                }
+            )
+        
+        self.logger.debug("ROUTE53 ID: " + response['ChangeInfo']['Id'] + " exec time: " + str(datetime.now() - startTime) + "added DNS:" + fqdn +"." + self.config['aws.domainName'].rstrip('.') + " -> " + str(ipAddress))
+        return fqdn +"." + self.config['aws.domainName'].rstrip('.')
