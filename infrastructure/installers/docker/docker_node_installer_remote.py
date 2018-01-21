@@ -179,7 +179,7 @@ def registerWithDTR(self, logger, config, host, dtrHost, dtrIp, ucpPassword, pas
         logger.debug('Transferring certificate to ' + host)
         dest = config['download.location'] + '/' + certName
         #have to do this because we can't put into the final dir
-        os_executor.executeRemoteCommand(logger, config, "mkdir  -p " + config['download.location'] , host, password)
+        os_executor.executeRemoteCommand(logger, config, "mkdir -p " + config['download.location'] , host, password)
         output = os_executor.transferFile(logger, config, host, password, downloadLocation, dest)
         saveLocation = config['docker.dtr.cert.location'] + '/' + certName  
         cmd = 'mv ' + dest + ' ' + saveLocation
@@ -207,7 +207,7 @@ def registerWithDTR(self, logger, config, host, dtrHost, dtrIp, ucpPassword, pas
   
     if 'error' not in output.lower():
         logger.debug('Successfully restarted the Docker service on ' + host)
-        cmd = 'docker login -u admin -p' + ucpPassword + ' ' + hostname
+        cmd = 'docker login -u admin -p ' + ucpPassword + ' ' + hostname
         output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
     
     else:
