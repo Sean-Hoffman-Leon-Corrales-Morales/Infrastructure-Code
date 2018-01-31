@@ -58,7 +58,7 @@ class installNode(object):
                     logger.debug('Successfully installed Docker EE')
                     if awsFlag is True:
                         logger.debug("sending to Route53: ucp.*domain -> " + str(host))
-                        aws.addRoute53("docker.ucp", str(host))
+                        aws.addRoute53("ucp", str(host))
                     isExecuteSuccess = installUCP(logger, config, ucpPassword, licenseFilePath, host, password)
     
                 elif isExecuteSuccess is False:
