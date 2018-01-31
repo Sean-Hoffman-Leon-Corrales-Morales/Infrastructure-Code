@@ -1,5 +1,13 @@
 # Infrastructure-Code 
 
+## About
+
+This project is an Infrastructure as Code (IAC) project. It is intended to automatically manage and provision a containerized data center through code, rather than using a manual process.
+Infrastructure as Code is sometimes referred to as programmable infrastructure. This solution is under development but, is intended to handle provisioning through, VMware and/or AWS. 
+Much of this code centers around Docker-EE and leverages it heavily to stand-up a data center environment complete with UCP, DTR, **GitLab, **artifacotry and ** Jenkins. 
+
+`**feature is coming soon`
+
 ## Usage
 
     python run_installation.py [options]
