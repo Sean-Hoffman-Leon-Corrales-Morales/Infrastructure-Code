@@ -16,6 +16,11 @@ from pip._vendor.pyparsing import empty
 
 
 class installNode(object):
+    
+    def __init__(self):
+        self.requester = http_request()
+        
+        
 #===============================================================================
 # Paramters:
 #   logger        - This is the logger used to record log messages.
@@ -30,8 +35,7 @@ class installNode(object):
 # Description: This function will coordinate the installation of the complete Docker 
 #              installation. 
 #===============================================================================
-    def __init__(self, logger, config, managers, workers, dtrCount, password, ucpPassword, licenseFilePath):
-        self.requester = http_request()
+    def install(self, logger, config, managers, workers, dtrCount, password, ucpPassword, licenseFilePath):
         managerCounter = 0 
         workerCounter = 0  
         dtrCounter = 0
@@ -128,21 +132,21 @@ class installNode(object):
 # Description: This function will login and obtain an authorization token to be used
 #              in subsequent REST calls. 
 #===============================================================================
-def getAuthToken(self, logger, config, ucpUrl, ucpPassword):
-    logger.debug('+++ Getting Auth Token +++')
-    authToken = None
-    requestUrl = ucpUrl + '/auth/login'
-    headers = {'Content-Type': 'application/json'}
-    payload = {'password': ucpPassword, 'username': config['docker.ucp.user']}
-    response = self.requester.post(logger, requestUrl, payload, headers)
-    
-    if response != None:
-        authToken = response['auth_token']  
-        logger.debug('Successfully retrieved auth token.')   
-      
-    else:
-        logger.error('An error was encountered getting auth token. ' + str(response))   
-    return authToken
+    def getAuthToken(self, logger, config, ucpUrl, ucpPassword):
+        logger.debug('+++ Getting Auth Token +++')
+        authToken = None
+        requestUrl = ucpUrl + '/auth/login'
+        headers = {'Content-Type': 'application/json'}
+        payload = {'password': ucpPassword, 'username': config['docker.ucp.user']}
+        response = self.requester.post(logger, requestUrl, payload, headers)
+        
+        if response != None:
+            authToken = response['auth_token']  
+            logger.debug('Successfully retrieved auth token.')   
+          
+        else:
+            logger.error('An error was encountered getting auth token. ' + str(response))   
+        return authToken
 
 
 #===============================================================================
@@ -160,68 +164,79 @@ def getAuthToken(self, logger, config, ucpUrl, ucpPassword):
 #                3. Updates the ca trust.
 #                4. Restarts the Docker service.
 #===============================================================================
-def registerWithDTR(self, logger, config, host, dtrHost, dtrIp, ucpPassword, password):
-    logger.debug('+++ Beginning registration with DTR +++')
-    # this was dtrHost
-    hostname = socket.gethostbyaddr(dtrIp)[0]
-    
-    # I know this sucks.  But I will remove the additional parameters once we test this and it working.
-    if dtrHost is dtrIp:
-      dtrHost = hostname
-    
-    url = 'https://' + dtrHost + '/ca'
-    certName = dtrHost + '.crt'
-    downloadLocation = config['download.location'] + '/' + certName
-    isExecuteSuccess = self.requester.downloadFile(logger, url, downloadLocation)
-    output = ''
-    
-    if isExecuteSuccess is True:
-        logger.debug('Transferring certificate to ' + host)
-        dest = config['download.location'] + '/' + certName
-        #have to do this because we can't put into the final dir
-        cmd = 'mkdir -p ' + config['download.location'] + ' && sudo chown centos:centos ' +  config['download.location']
-        os_executor.executeRemoteCommand(logger, config, cmd , host, password)
-        output = os_executor.transferFile(logger, config, host, password, downloadLocation, dest)
-        saveLocation = config['docker.dtr.cert.location'] + '/' + certName  
-        cmd = 'mv ' + dest + ' ' + saveLocation
-        output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
-    else:
-        logger.error('An error was encountered downloading the DTR certificate.')
-  
-    if 'error' not in output.lower():
-        logger.debug('+++ Successfully transferred certificate to ' + host + ' +++')
-        logger.debug('Beginning update of ca trust on ' + host)
-        cmd = 'update-ca-trust'
-        output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
-    
-    else:
-        logger.error('An error was encountered transferring the DTR certificate to ' + host)   
-  
-    if 'error' not in output.lower():
-        logger.debug('+++ Successfully updated the ca trust on the worker node +++')
-        logger.debug('Beginning restart of the Docker service on ' + host)
-        cmd = 'service docker restart'
-        output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
-    
-    else:
-        logger.error('An error was encountered updating the ca trust on ' + host) 
-  
-    if 'error' not in output.lower():
-        logger.debug('Successfully restarted the Docker service on ' + host)
-        cmd = 'docker login -u admin -p ' + ucpPassword + ' ' + dtrHost
-        output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
-    
-    else:
-        logger.error('An error was encountered restarting the Docker service on ' + host)
-   
-    if 'error' not in output.lower():
-        isExecuteSuccess = True
-        output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
-    
-    else:
-        logger.error('An error was encountered logging into the DTR on ' + dtrHost)
-    
-    return isExecuteSuccess
+    def registerWithDTR(self, logger, config, host, dtrHost, dtrIp, ucpPassword, password, local = False):
+        logger.debug('+++ Beginning registration with DTR +++')
+        # this was dtrHost
+        hostname = socket.gethostbyaddr(dtrIp)[0]
+        
+        # I know this sucks.  But I will remove the additional parameters once we test this and it working.
+        if dtrHost is dtrIp:
+            dtrHost = hostname
+        
+        url = 'https://' + dtrHost + '/ca'
+        certName = dtrHost + '.crt'
+        downloadLocation = config['download.location'] + '/' + certName
+        isExecuteSuccess = self.requester.downloadFile(logger, url, downloadLocation)
+        output = ''
+        
+        if isExecuteSuccess is True:
+            saveLocation = config['docker.dtr.cert.location'] + '/' + certName
+            moveCmd = 'mv ' + downloadLocation + ' ' + saveLocation
+            
+            if local is True:
+                logger.debug('Moving certificate')
+                output = os_executor.executeCmd(logger, moveCmd)
+                
+            else:
+                logger.debug('Transferring certificate to ' + host)
+                cmd = 'mkdir -p ' + config['download.location'] + ' && sudo chown centos:centos ' +  config['download.location']
+                os_executor.executeRemoteCommand(logger, config, cmd , host, password)
+                output = os_executor.transferFile(logger, config, host, password, downloadLocation, downloadLocation)
+                output = os_executor.executeRemoteCommand(logger, config, moveCmd, host, password)
+        else:
+            logger.error('An error was encountered downloading the DTR certificate.')
+      
+        if 'error' not in output.lower():
+            logger.debug('+++ Successfully transferred certificate to ' + host + ' +++')
+            logger.debug('Beginning update of ca trust on ' + host)
+            cmd = 'update-ca-trust'
+            if local is True:
+                output = os_executor.executeCmd(logger, cmd)
+            else:
+                output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
+        
+        else:
+            logger.error('An error was encountered transferring the DTR certificate to ' + host)   
+      
+        if 'error' not in output.lower():
+            logger.debug('+++ Successfully updated the ca trust on the worker node +++')
+            logger.debug('Beginning restart of the Docker service on ' + host)
+            cmd = 'service docker restart'
+            if local is True:
+                output = os_executor.executeCmd(logger, cmd)
+            else:
+                output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
+        
+        else:
+            logger.error('An error was encountered updating the ca trust on ' + host) 
+      
+        if 'error' not in output.lower():
+            logger.debug('Successfully restarted the Docker service on ' + host)
+            cmd = 'docker login -u admin -p ' + ucpPassword + ' ' + dtrHost
+            if local is True:
+                output = os_executor.executeCmd(logger, cmd)
+            else:
+                output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
+        
+        else:
+            logger.error('An error was encountered restarting the Docker service on ' + host)
+       
+        if 'error' not in output.lower():
+            isExecuteSuccess = True   
+        else:
+            logger.error('An error was encountered logging into the DTR on ' + dtrHost)
+        
+        return isExecuteSuccess
     
 
 #===============================================================================
@@ -233,23 +248,23 @@ def registerWithDTR(self, logger, config, host, dtrHost, dtrIp, ucpPassword, pas
 #   authToken - This is the token that authorizes the completion of REST calls to UCP.
 # Description: This function will get a list of the manager nodes. 
 #===============================================================================
-def getManagerNodeList(self, logger, ucpUrl, authToken):
-    logger.debug('+++ Getting Manager List +++')
-    headers = {'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json'}
-    managers = []
-    requestUrl = ucpUrl + '/nodes'
-    response = self.requester.get(logger, requestUrl, headers)
-    if response != None:
-        logger.debug("response: " + str(response) + " of type: " + str(type(response)))
-        for manager in response:
-            if 'ManagerStatus' in manager.keys():
-                managerIp = manager['ManagerStatus']['Addr']
-                managers.append(managerIp) 
-            
-            else:
-                logger.error('An error was encountered in getting the manager list. ' + str(response))   
-            
-    return managers
+    def getManagerNodeList(self, logger, ucpUrl, authToken):
+        logger.debug('+++ Getting Manager List +++')
+        headers = {'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json'}
+        managers = []
+        requestUrl = ucpUrl + '/nodes'
+        response = self.requester.get(logger, requestUrl, headers)
+        if response != None:
+            logger.debug("response: " + str(response) + " of type: " + str(type(response)))
+            for manager in response:
+                if 'ManagerStatus' in manager.keys():
+                    managerIp = manager['ManagerStatus']['Addr']
+                    managers.append(managerIp) 
+                
+                else:
+                    logger.error('An error was encountered in getting the manager list. ' + str(response))   
+                
+        return managers
 
 
 #===============================================================================
@@ -265,76 +280,76 @@ def getManagerNodeList(self, logger, ucpUrl, authToken):
 #   host          - This is the host where the UCP is to be installed.
 # Description: This function will create a new worker node and add it to the Swarm. 
 #===============================================================================
-def addWorkerNode(self, logger, config, ucpUrl, ucpPassword, password, host):
-    logger.debug('+++ Beginning creation of worker node +++')
-    authToken = getAuthToken(self, logger, config, ucpUrl, ucpPassword)
-    headers = {'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json'}
-    managers = getManagerNodeList(self, logger, ucpUrl, authToken)
-    
-    swarmToken = None
-    isExecuteSuccess = False
-    requestUrl = ucpUrl + '/swarm'
-    output = None
-    response = self.requester.get(logger, requestUrl, headers)
-
-    if response != None:
-        swarmToken = response['JoinTokens']['Worker']
-        logger.debug('Using worker swarm token: ' + swarmToken)
-        cmd = 'docker swarm join --token ' + swarmToken + ' ' + managers[0]
-        output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
-
-    else:
-        logger.error('An error was encountered getting swarm token. ' + str(response))   
-
-    if 'error' not in output.lower():
-        isExecuteSuccess = True
-        logger.debug('+++ Successfully added a worker node +++')
-    else:
-        logger.error('An error was encountered adding a worker node')
-    
-    return isExecuteSuccess
-
-
-#===============================================================================
-# Paramters:
-#   logger        - This is the logger used to record log messages.
-#   config        - This is the dict of configuration parameters that are obtained from 
-#                   the base.yaml file.
-#   ucpUrl        - This is the URL including port that the UCP is listening on.
-#                   The URL would normally be something like:
-#                   https://something.com
-#   ucpPassword   - This is the password to be used for the UCP admin account.
-#   password      - This is the password to be to login to remote servers via ssh.
-#   host          - This is the host where the UCP is to be installed.
-# Description: This function will create a new worker node and add it to the Swarm. 
-#===============================================================================
-def addManagerNode(self, logger, config, ucpUrl, ucpPassword, password, host):
-    logger.debug('+++ Beginning creation of manager node +++')
-    authToken = getAuthToken(self, logger, config, ucpUrl, ucpPassword)
-    headers = {'Authorization': 'Bearer ' + authToken}
-    managers = getManagerNodeList(self, logger, ucpUrl, authToken)
-    
-    swarmToken = None
-    isExecuteSuccess = False
-    requestUrl = ucpUrl + '/swarm'
-    output = None
-    
-    response = self.requester.get(logger, requestUrl, headers)
-    
-    if response != None:
-        swarmToken = response['JoinTokens']['Manager']
-        logger.debug('Using worker swarm token: ' + swarmToken)
-        cmd = 'docker swarm join --token ' + swarmToken + ' ' + managers[0]
-        output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
-
-    else:
-        logger.error('An error was encountered getting swarm token. ' + str(response))   
-
-    if 'error' not in output.lower():
-        isExecuteSuccess = False
-        logger.debug('+++ Successfully added a manager node +++')
-
-    else:
-        logger.error('An error was encountered adding a manager node')  
+    def addWorkerNode(self, logger, config, ucpUrl, ucpPassword, password, host):
+        logger.debug('+++ Beginning creation of worker node +++')
+        authToken = getAuthToken(self, logger, config, ucpUrl, ucpPassword)
+        headers = {'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json'}
+        managers = getManagerNodeList(self, logger, ucpUrl, authToken)
         
-    return isExecuteSuccess
+        swarmToken = None
+        isExecuteSuccess = False
+        requestUrl = ucpUrl + '/swarm'
+        output = None
+        response = self.requester.get(logger, requestUrl, headers)
+    
+        if response != None:
+            swarmToken = response['JoinTokens']['Worker']
+            logger.debug('Using worker swarm token: ' + swarmToken)
+            cmd = 'docker swarm join --token ' + swarmToken + ' ' + managers[0]
+            output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
+    
+        else:
+            logger.error('An error was encountered getting swarm token. ' + str(response))   
+    
+        if 'error' not in output.lower():
+            isExecuteSuccess = True
+            logger.debug('+++ Successfully added a worker node +++')
+        else:
+            logger.error('An error was encountered adding a worker node')
+        
+        return isExecuteSuccess
+
+
+#===============================================================================
+# Paramters:
+#   logger        - This is the logger used to record log messages.
+#   config        - This is the dict of configuration parameters that are obtained from 
+#                   the base.yaml file.
+#   ucpUrl        - This is the URL including port that the UCP is listening on.
+#                   The URL would normally be something like:
+#                   https://something.com
+#   ucpPassword   - This is the password to be used for the UCP admin account.
+#   password      - This is the password to be to login to remote servers via ssh.
+#   host          - This is the host where the UCP is to be installed.
+# Description: This function will create a new worker node and add it to the Swarm. 
+#===============================================================================
+    def addManagerNode(self, logger, config, ucpUrl, ucpPassword, password, host):
+        logger.debug('+++ Beginning creation of manager node +++')
+        authToken = getAuthToken(self, logger, config, ucpUrl, ucpPassword)
+        headers = {'Authorization': 'Bearer ' + authToken}
+        managers = getManagerNodeList(self, logger, ucpUrl, authToken)
+        
+        swarmToken = None
+        isExecuteSuccess = False
+        requestUrl = ucpUrl + '/swarm'
+        output = None
+        
+        response = self.requester.get(logger, requestUrl, headers)
+        
+        if response != None:
+            swarmToken = response['JoinTokens']['Manager']
+            logger.debug('Using worker swarm token: ' + swarmToken)
+            cmd = 'docker swarm join --token ' + swarmToken + ' ' + managers[0]
+            output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
+    
+        else:
+            logger.error('An error was encountered getting swarm token. ' + str(response))   
+    
+        if 'error' not in output.lower():
+            isExecuteSuccess = False
+            logger.debug('+++ Successfully added a manager node +++')
+    
+        else:
+            logger.error('An error was encountered adding a manager node')  
+            
+        return isExecuteSuccess

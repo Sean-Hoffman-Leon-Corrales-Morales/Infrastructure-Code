@@ -61,6 +61,7 @@ def installPythonPackages():
     requests = pipInstaller('pip install requests')
     boto3 = pipInstaller('sudo pip install boto3')
     pydoc = pipInstaller('pydoc modules')
+    ipaddress = pipInstaller('sudo pip install ipaddress')
 
   if upgrade and pyyaml and fabric and requests and boto3 and pydoc:
     print 'Successfully upgraded pip, installed pyyaml, fabric, requests, boto3 and pydoc.'
