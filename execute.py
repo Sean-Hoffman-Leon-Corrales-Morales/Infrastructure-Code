@@ -86,9 +86,7 @@ if __name__ == '__main__':
     managers['StressCount'] = sys.argv[11]
     managers['DmzCount'] = sys.argv[12]
     managers['ProdCount'] = sys.argv[13]
-    loadDtr = sys.argv[14]
-    loadDtrPath = sys.argv[15]
-    dtrFlag = False
+    loadDtrPath = sys.argv[14]
     logger.debug('Password: ' + password)
     logger.debug('Docker Password: ' + dockerPassword)
     logger.debug('License file path ' + licenseFilePath)
@@ -96,8 +94,9 @@ if __name__ == '__main__':
     logger.debug('Worker Total Count ' + str(workers['DevCount'] + workers['QaCount'] + workers['StressCount'] + workers['DmzCount'] + workers['ProdCount']))
     logger.debug('Manager Total Count ' + str(managers['DevCount'] + managers['QaCount'] + managers['StressCount'] + managers['DmzCount'] + managers['ProdCount']))
     config = parser.config_parser(logger, YAML_CONFIG_FILE_PATH)
-    installNode.installNode(logger, config.getConfig(), managers, workers, dtrCount, password, dockerPassword, licenseFilePath)
-    if(loadDtr is True):
+    installer = installNode.installNode()
+    installer.install(logger, config.getConfig(), managers, workers, dtrCount, password, dockerPassword, licenseFilePath)
+    if loadDtrPath:
         loadRegistry(loadDtrPath, password)
 
 

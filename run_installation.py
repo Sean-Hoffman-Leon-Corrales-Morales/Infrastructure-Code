@@ -32,8 +32,7 @@ def runPreInstall(inputs):
     parser.add_argument('-ms', '--managersStress', dest='managerStressCount', type=int, help='the number of manager nodes to install.')
     parser.add_argument('-mz', '--managersDMZ', dest='managerDmzCount', type=int, help='the number of manager nodes to install.')
     parser.add_argument('-mp', '--managersProd', dest='managerProdCount', type=int, help='the number of manager nodes to install.')
-    parser.add_argument('-ldtr', '--loadDtr', dest='loadDtr', type=bool, help='Pre-load the dtr.')
-    parser.add_argument('-ldtrp', '--loadDtrPath', dest='loadDtrPath', type=string, help='Path to the yml file that will pre-load the DTR.')
+    parser.add_argument('-ldtrp', '--loadDtrPath', dest='loadDtrPath', help='Path to the yml file that will pre-load the DTR.')
 
     args = parser.parse_args()
     if not args.osPassword: #handle a no password argument
@@ -54,7 +53,6 @@ def runPreInstall(inputs):
     managerStressCount = args.managerStressCount
     managerDmzCount = args.managerDmzCount
     managerProdCount = args.managerProdCount
-    loadDtr = args.loadDtr
     loadDtrPath = args.loadDtrPath
     if licenseFilePath:
     # Decide if you want to keep this if here.  You can remove it if necessary.
@@ -64,7 +62,7 @@ def runPreInstall(inputs):
         if isExecuteSuccess is True:
             sys.argv = [password, dockerPassword, licenseFilePath, dtrCount, workerDevCount, workerQaCount,
                         workerStressCount, workerDmzCount, workerProdCount, managerDevCount, managerQaCount, 
-                        managerStressCount, managerDmzCount, managerProdCount, loadDtr, loadDtrPath]
+                        managerStressCount, managerDmzCount, managerProdCount, loadDtrPath]
             execfile('execute.py')
             
         else:
