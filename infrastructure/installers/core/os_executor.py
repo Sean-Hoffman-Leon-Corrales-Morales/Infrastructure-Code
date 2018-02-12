@@ -5,7 +5,7 @@ Created on Nov 17, 2017
 '''
 
 from fabric.api import local, run, env, put
-import subprocess
+import subprocess, requests, os
 
 MAX_RETRIES = 3
 retries = 0
@@ -46,6 +46,28 @@ def readFile(logger, filePath):
     return content
 
 
+
+#==============================================================================
+# Paramters:
+#   logger   - This is the logger used to record log messages.
+#   filePath - where to save the file
+#   url      - This is the server where we're downloading from .
+#   header   - header data to pass along.
+#
+# Description: This function download a file, save it and return true/false.
+#              
+#==============================================================================
+def downloadFileHTTP(logger, filePath, url, header):
+    r = requests.get(url,verify=False, headers=header)
+    with open( filePath, "wb") as code:
+        code.write(r.content)
+        code.close()
+    if os.path.isfile(filePath) and r.status_code == 200:
+        return True
+    else: 
+        return False
+    
+    
 #==============================================================================
 # Paramters:
 #   logger   - This is the logger used to record log messages.

@@ -4,7 +4,7 @@ Created on Nov 25, 2017
 @author: shoffman, LFCM
 '''
 
-
+import infrastructure.installers.docker.docker_image as image 
 import infrastructure.utilities.config_parser as parser
 import infrastructure.utilities.config_logging as setupLogging
 import infrastructure.installers.docker.docker_node_installer_remote as installNode
@@ -15,6 +15,58 @@ from distutils.core import setup
 YAML_CONFIG_FILE_PATH = 'configuration/base.yaml'
 LOGGING_CONFIG_FILE_PATH = 'configuration/logging.yaml'
 config = None
+
+
+
+def loadRegistry(dtrFile, password):
+    config = parser.config_parser(logger, YAML_CONFIG_FILE_PATH)
+    dtrConfig1 = parser.config_parser(logger, dtrFile)
+    dtrConfig = dtrConfig1.getConfig()
+    i = image.docker_image(logger, config.getConfig(), password)
+    i.installDockerLocal()
+    for name, fullName, userPassword, isAdmin in zip(dtrConfig["accounts.name"], 
+                                                 dtrConfig["accounts.fullName"],
+                                                 dtrConfig["accounts.defaultPassword"], 
+                                                 dtrConfig["accounts.isAdmin"]):
+         
+        accounts = {'name': name, 'fullName': fullName, 
+                    'isOrg':False, 'isAdmin': isAdmin, 'isActive': True,
+                     'password': userPassword}
+        respCode = i.addAccts(accounts)
+        logger.debug("response code: " + str(respCode))
+     
+    for name in dtrConfig["accounts.orgs"]:
+        org = {'name': name, 'fullName': name , 'isOrg':True, 'isAdmin': False, 'isActive': True}
+        respCode = i.addAccts(org)
+        logger.debug("response code: " + str(respCode))
+     
+    for org, name in zip(dtrConfig["accounts.orgs"], dtrConfig["accounts.name"]):   
+        payload = {'isAdmin':True, 'isPublic': True}
+        respCode = i.addAcctToOrg( name, org, payload)
+        logger.debug("response code: " + str(respCode))    
+     
+    for org in dtrConfig["accounts.orgs"]:
+        key = "repos." + org 
+        for repos in dtrConfig[key]: 
+            repo =  { "name": repos, "shortDescription": "Repository for " + repos, "longDescription": "This is a repo created by automation.","visibility": "public"}
+            respCode = i.createRepos(repo, org)
+            logger.debug("response code: " + str(respCode))
+    
+    URLs = {}
+    oldId = ""
+    for image in dtrConfig["repos.images"]:
+        dtrRepo = image["org"] + '/' + image["id"]
+        logger.debug("DTR Repo: " + str(dtrRepo)) 
+        if( oldId == image["id"] and oldId is not ""):
+            URLs.update( { image["name"] : image["value"]})
+        else:
+            logger.debug("about to build: " + str(URLs) + " image: " + image["id"] + " repo: " + dtrRepo)
+            i.buildFromRepo(URLs, image["id"], dtrRepo, 'seed')
+            logger.debug("pushing to repo: " + dtrRepo)
+            i.pushToDTR(dtrRepo)
+            URLs.clear()
+            URLs = {image["name"] : image["value"]} 
+        oldId = image["id"]
 
 if __name__ == '__main__':
     logger = setupLogging.config_logging().getLogger(LOGGING_CONFIG_FILE_PATH)
@@ -34,7 +86,9 @@ if __name__ == '__main__':
     managers['StressCount'] = sys.argv[11]
     managers['DmzCount'] = sys.argv[12]
     managers['ProdCount'] = sys.argv[13]
-    
+    loadDtr = sys.argv[14]
+    loadDtrPath = sys.argv[15]
+    dtrFlag = False
     logger.debug('Password: ' + password)
     logger.debug('Docker Password: ' + dockerPassword)
     logger.debug('License file path ' + licenseFilePath)
@@ -43,3 +97,11 @@ if __name__ == '__main__':
     logger.debug('Manager Total Count ' + str(managers['DevCount'] + managers['QaCount'] + managers['StressCount'] + managers['DmzCount'] + managers['ProdCount']))
     config = parser.config_parser(logger, YAML_CONFIG_FILE_PATH)
     installNode.installNode(logger, config.getConfig(), managers, workers, dtrCount, password, dockerPassword, licenseFilePath)
+    if(loadDtr is True):
+        loadRegistry(loadDtrPath, password)
+
+
+
+
+
+        

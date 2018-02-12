@@ -27,40 +27,61 @@ class http_request(object):
         response = requests.post(url, headers=headers, verify=False, data=json.dumps(payload))
       
         logger.debug('RESPONSE: ' + str(response))
-        if response.status_code != 200:
+        if response.status_code != 200 :
             logger.error('Received HTTP ' + str(response.status_code))
             self.response = None
       
         else:
             logger.debug('Received HTTP ' + str(response.status_code))
-            self.response = response.json()
+            try:
+                self.response = response.json()
+            except Exception:
+                logger.info('failed to decode response to JSON') 
+                pass
+            
             logger.debug('Response: ' + str(self.response))
         
         return self.response
+    
+#===============================================================================
+# Paramters:
+#   logger  - This is the logger used to record log messages.
+#   url     - This is the URL that requests are posted to.
+#   payload - This is the payload that will be sent in the post.
+#   username- user name added to the post.
+#   password- password to use.
+# Description: This function will execute an HTTP POST using the specified URL
+#              and payload using username and password. 
+#===============================================================================
+    def authPost (self, logger, url, payload, username, password):
+        logger.debug('Making POST request to: ' + url)
+        logger.debug('Payload: ' + str(payload))
+        r = requests.post(url, json=payload, verify=False, auth=(username,password) )
+        if r.ok:
+            return r
+        else:
+            r.raise_for_status()
 
-# REMOVE THIS IF WE CAN
-#   def postO(self, logger, url, payload, headers):
-#        logger.debug('Making POST request to: ' + url)
-#        logger.debug('Payload: ' + str(json.dumps(payload)))
-#        s = requests.Session()
-#
-#        req = requests.Request('POST', url, data=json.dumps(payload), headers=headers)
-#        logger.debug('HEADERS: ' + str(req.headers))
-#        logger.debug('DATA: ' + str(req.data))
-#        prepped = req.prepare()
-#        response = s.send(prepped, verify=False)
-#  
-#        if response.status_code != 200:
-#            logger.error('Received HTTP ' + str(response.status_code))
-#            self.response = None
-#  
-#        else:
-#            logger.debug('Received HTTP ' + str(response.status_code))
-#            self.response = response.json()
-#            logger.debug('RESPONSE: ' + str(response))
-#  
-#        return self.response
+#===============================================================================
+# Paramters:
+#   logger  - This is the logger used to record log messages.
+#   url     - This is the URL that requests are posted to.
+#   payload - This is the payload that will be sent in the post.
+#   username- user name added to the post.
+#   password- password to use.
+# Description: This function will execute an HTTP PUT using the specified URL
+#              and payload using username and password. 
+#===============================================================================
+    def authPut (self, logger, url, payload, username, password):
+        logger.debug('Making Put request to: ' + url)
+        logger.debug('Payload: ' + str(payload))
+        r = requests.put(url, json=payload, verify=False, auth=(username,password) )
+        if r.ok:
+            return r
+        else:
+            r.raise_for_status()
 
+            
 #===============================================================================
 # Parameters:
 #   logger       - This is the logger used to record log messages.
