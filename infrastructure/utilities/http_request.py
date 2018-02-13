@@ -56,6 +56,7 @@ class http_request(object):
     def authPost (self, logger, url, payload, username, password):
         logger.debug('Making POST request to: ' + url)
         logger.debug('Payload: ' + str(payload))
+        logger.debug('username: ' + username + " password: "+ password)
         r = requests.post(url, json=payload, verify=False, auth=(username,password) )
         if r.ok:
             return r

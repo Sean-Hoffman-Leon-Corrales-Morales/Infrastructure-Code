@@ -9,7 +9,6 @@ import infrastructure.utilities.config_parser as parser
 import infrastructure.utilities.config_logging as setupLogging
 import infrastructure.installers.docker.docker_node_installer_remote as installNode
 import sys
-from distutils.core import setup
 
 
 YAML_CONFIG_FILE_PATH = 'configuration/base.yaml'
@@ -18,8 +17,7 @@ config = None
 
 
 
-def loadRegistry(dtrConfig, password, config):
-    i = image.docker_image(logger, config.getConfig(), password)
+def loadRegistry(dtrConfig, i, logger):
     URLs = {}
     oldId = ""
     i.installDockerLocal()
@@ -67,7 +65,7 @@ def loadRegistry(dtrConfig, password, config):
 
 if __name__ == '__main__':
     logger = setupLogging.config_logging().getLogger(LOGGING_CONFIG_FILE_PATH)
-    password = sys.argv[0]
+    osPassword = sys.argv[0]
     dockerPassword = sys.argv[1]
     licenseFilePath = sys.argv[2]
     dtrCount = sys.argv[3]
@@ -84,7 +82,7 @@ if __name__ == '__main__':
     managers['DmzCount'] = sys.argv[12]
     managers['ProdCount'] = sys.argv[13]
     loadDtrPath = sys.argv[14]
-    logger.debug('Password: ' + password)
+    logger.debug('Password: ' + osPassword)
     logger.debug('Docker Password: ' + dockerPassword)
     logger.debug('License file path ' + licenseFilePath)
     logger.debug('DTR Count ' + str(dtrCount))
@@ -92,11 +90,12 @@ if __name__ == '__main__':
     logger.debug('Manager Total Count ' + str(managers['DevCount'] + managers['QaCount'] + managers['StressCount'] + managers['DmzCount'] + managers['ProdCount']))
     config = parser.config_parser(logger, YAML_CONFIG_FILE_PATH)
     installer = installNode.installNode()
-    installer.install(logger, config.getConfig(), managers, workers, dtrCount, password, dockerPassword, licenseFilePath)
+    #installer.install(logger, config.getConfig(), managers, workers, dtrCount, osPassword, dockerPassword, licenseFilePath)
     if loadDtrPath:
         dtrConfigInst = parser.config_parser(logger, loadDtrPath)
         dtrConfig = dtrConfigInst.getConfig()
-        loadRegistry(dtrConfig, password, config)
+        i = image.docker_image(logger, config.getConfig(), dockerPassword)
+        loadRegistry(dtrConfig, i, logger)
 
 
 

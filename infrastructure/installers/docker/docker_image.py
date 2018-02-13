@@ -7,6 +7,8 @@ import socket
 import infrastructure.installers.core.os_executor as os_executor
 import infrastructure.utilities.http_request as http_request
 import infrastructure.installers.docker.docker_node_installer_remote as installer_remote
+from asn1crypto._ffi import null
+from pyasn1.type.univ import Null
 
  
 class docker_image(object):
@@ -14,7 +16,7 @@ class docker_image(object):
     classdocs
     '''
 
-    def __init__(self, logger, config, password):
+    def __init__(self, logger, config, dockerPassword, osPassword = Null):
         '''
         Constructor
         
@@ -24,7 +26,8 @@ class docker_image(object):
         '''
         self.logger = logger
         self.config = config
-        self.password = password
+        self.dockerPassword = dockerPassword
+        self.osPassword = osPassword
         
         '''
         @summary: description: 
@@ -96,8 +99,8 @@ class docker_image(object):
         dtrHost = self.config["aws.dockerReg"]
         dtrIp = socket.gethostbyname(dtrHost)
         self.logger.debug("host IP: " + host + " dtrIP: " + dtrIp + " dtrHost: " + dtrHost)
-        ir.registerWithDTR(self.logger, self.config, host, dtrHost, dtrIp, self.password, self.password, True)
-        cmd = "docker login " + dtrHost + " -u " + self.config["docker.ucp.user"] + " -p " + self.password
+        ir.registerWithDTR(self.logger, self.config, host, dtrHost, dtrIp, self.dockerPassword, self.osPassword, True)
+        cmd = "docker login " + dtrHost + " -u " + self.config["docker.ucp.user"] + " -p " + self.dockerPassword
         self.logger.debug("running.." + cmd)
         output = os_executor.executeCmd(self.logger, cmd)
         self.logger.debug("got back : " + str(output))
@@ -112,18 +115,18 @@ class docker_image(object):
         req = http_request.http_request()
         url = "https://" + self.config["aws.dockerReg"] + '/enzi/v0/accounts'
         payload = accounts
-        return req.authPost(self.logger, url, payload, self.config['docker.ucp.user'], self.password)
+        return req.authPost(self.logger, url, payload, self.config['docker.ucp.user'], self.dockerPassword)
 
     def addAcctToOrg(self, user, org, payload):
         req = http_request.http_request()
         url = "https://" + self.config["aws.dockerReg"] + '/enzi/v0/accounts/' + org + '/members/' + user
-        return req.authPut(self.logger, url, payload, self.config['docker.ucp.user'], self.password)       
+        return req.authPut(self.logger, url, payload, self.config['docker.ucp.user'], self.dockerPassword)       
     
     def createRepos(self, repo, org):
         req = http_request.http_request()
         url = "https://" + self.config["aws.dockerReg"] + '/api/v0/repositories/' + org
         payload = repo
-        return req.authPost(self.logger, url, payload, self.config['docker.ucp.user'], self.password)        
+        return req.authPost(self.logger, url, payload, self.config['docker.ucp.user'], self.dockerPassword)        
 
     def getIp(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

@@ -5,7 +5,7 @@ Created on Dec 14, 2017
 
 
 '''
-import boto3
+import boto3, multiprocessing
 from datetime import datetime
 #from threading import Thread
 
@@ -105,8 +105,9 @@ class provisioner(object):
 #==============================================================================
     def setWorkers(self, count, zone):
         for i in range(1, count + 1):
-            #t = Thread(target=self.createEC2, args=(i, zone, False,))
-            #t.start()
+            #p = multiprocessing.Process(target=self.createEC2, args=(i, zone, False,))
+            #p.start()
+            #p.join()
             self.createEC2(i, zone, False)
         
         
@@ -119,8 +120,9 @@ class provisioner(object):
 #==============================================================================    
     def setManagers(self, count, zone):
         for i in range(1, count + 1):
-            #t = Thread(target=self.createEC2, args=(i, zone, True,))
-            #t.start()
+            #p = multiprocessing.Process(target=self.createEC2, args=(i, zone, True,))
+            #p.start()
+            #p.join()
             self.createEC2(i, zone, True)
 
 #==============================================================================
