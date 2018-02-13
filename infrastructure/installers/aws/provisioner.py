@@ -7,7 +7,7 @@ Created on Dec 14, 2017
 '''
 import boto3
 from datetime import datetime
-from threading import Thread
+#from threading import Thread
 
 class provisioner(object):
 
@@ -105,8 +105,9 @@ class provisioner(object):
 #==============================================================================
     def setWorkers(self, count, zone):
         for i in range(1, count + 1):
-            t = Thread(target=self.createEC2, args=(i, zone, False,))
-            t.start()
+            #t = Thread(target=self.createEC2, args=(i, zone, False,))
+            #t.start()
+            self.createEC2(i, zone, False)
         
         
 #==============================================================================
@@ -118,10 +119,19 @@ class provisioner(object):
 #==============================================================================    
     def setManagers(self, count, zone):
         for i in range(1, count + 1):
-            t = Thread(target=self.createEC2, args=(i, zone, True,))
-            t.start()
+            #t = Thread(target=self.createEC2, args=(i, zone, True,))
+            #t.start()
+            self.createEC2(i, zone, True)
 
-            
+#==============================================================================
+# Paramters:
+#   i        - This EC2's number whithin it's set
+#   zone     - Zone to create workers e.g qa, dev ... etc
+#   ismanager- Is this node a manger true/false
+# Description: provisions either a Docker manager node or worker node using for 
+#              a given count and zone. This is a consolidated function from old
+#              code. 
+#==============================================================================                
             
     def createEC2(self, i, zone, isManager):
             if(isManager):

@@ -18,11 +18,10 @@ config = None
 
 
 
-def loadRegistry(dtrFile, password):
-    config = parser.config_parser(logger, YAML_CONFIG_FILE_PATH)
-    dtrConfig1 = parser.config_parser(logger, dtrFile)
-    dtrConfig = dtrConfig1.getConfig()
+def loadRegistry(dtrConfig, password, config):
     i = image.docker_image(logger, config.getConfig(), password)
+    URLs = {}
+    oldId = ""
     i.installDockerLocal()
     for name, fullName, userPassword, isAdmin in zip(dtrConfig["accounts.name"], 
                                                  dtrConfig["accounts.fullName"],
@@ -52,8 +51,6 @@ def loadRegistry(dtrFile, password):
             respCode = i.createRepos(repo, org)
             logger.debug("response code: " + str(respCode))
     
-    URLs = {}
-    oldId = ""
     for image in dtrConfig["repos.images"]:
         dtrRepo = image["org"] + '/' + image["id"]
         logger.debug("DTR Repo: " + str(dtrRepo)) 
@@ -97,7 +94,9 @@ if __name__ == '__main__':
     installer = installNode.installNode()
     installer.install(logger, config.getConfig(), managers, workers, dtrCount, password, dockerPassword, licenseFilePath)
     if loadDtrPath:
-        loadRegistry(loadDtrPath, password)
+        dtrConfigInst = parser.config_parser(logger, loadDtrPath)
+        dtrConfig = dtrConfigInst.getConfig()
+        loadRegistry(dtrConfig, password, config)
 
 
 
