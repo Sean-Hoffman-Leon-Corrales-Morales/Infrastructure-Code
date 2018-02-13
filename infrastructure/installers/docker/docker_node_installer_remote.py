@@ -69,7 +69,7 @@ class installNode(object):
                     logger.error('An error was encountered installing Docker EE')
     
                 elif ucpInstalled is True:
-                    isExecuteSuccess = addManagerNode(self, logger, config, ucpUrl, ucpPassword, password, host)  # <-- ucp url
+                    isExecuteSuccess = self.addManagerNode( logger, config, ucpUrl, ucpPassword, password, host)  # <-- ucp url
     
                 if isExecuteSuccess is True and ucpInstalled is False:
                     ucpUrl = 'https://' + host
@@ -88,8 +88,7 @@ class installNode(object):
             if workerCounter < workerCount:
                 if isExecuteSuccess is True:
                     logger.debug('logger:' + str(logger) + ' config: ' + str(config) + ' ucpUrl' + str(ucpUrl) + ' ucpPassword ' + ucpPassword + ' host ' + host)
-                    isExecuteSuccess = addWorkerNode(self, logger, config, ucpUrl, ucpPassword, password, host)  # <-- ucp url
-                
+                    isExecuteSuccess = self.addWorkerNode(logger, config, ucpUrl, ucpPassword, password, host)  # <-- ucp url
                 else:
                     logger.error('An error was encountered installing Docker EE')
                 
@@ -112,7 +111,7 @@ class installNode(object):
                 workerCounter += 1
 
                 if workerCounter > dtrCounter:
-                    isExecuteSuccess = registerWithDTR(self, logger, config, host, dtrHost, dtrIp, ucpPassword, password)
+                    isExecuteSuccess = self.registerWithDTR( logger, config, host, dtrHost, dtrIp, ucpPassword, password)
       
                 if isExecuteSuccess is True:
                     logger.debug('Successfully installed the worker node')
@@ -282,9 +281,9 @@ class installNode(object):
 #===============================================================================
     def addWorkerNode(self, logger, config, ucpUrl, ucpPassword, password, host):
         logger.debug('+++ Beginning creation of worker node +++')
-        authToken = getAuthToken(self, logger, config, ucpUrl, ucpPassword)
+        authToken = self.getAuthToken( logger, config, ucpUrl, ucpPassword)
         headers = {'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json'}
-        managers = getManagerNodeList(self, logger, ucpUrl, authToken)
+        managers = self.getManagerNodeList(logger, ucpUrl, authToken)
         
         swarmToken = None
         isExecuteSuccess = False
@@ -325,9 +324,9 @@ class installNode(object):
 #===============================================================================
     def addManagerNode(self, logger, config, ucpUrl, ucpPassword, password, host):
         logger.debug('+++ Beginning creation of manager node +++')
-        authToken = getAuthToken(self, logger, config, ucpUrl, ucpPassword)
+        authToken = self.getAuthToken(logger, config, ucpUrl, ucpPassword)
         headers = {'Authorization': 'Bearer ' + authToken}
-        managers = getManagerNodeList(self, logger, ucpUrl, authToken)
+        managers = self.getManagerNodeList( logger, ucpUrl, authToken)
         
         swarmToken = None
         isExecuteSuccess = False

@@ -7,7 +7,6 @@ Created on Nov 25, 2017
 
 from infrastructure.installers.core.pre_install_regimin import installPythonPackages
 import argparse, sys
-from _cffi_backend import string
 
 LOGGING_CONFIG_FILE_PATH = 'configuration/logging.yaml'
 config = None

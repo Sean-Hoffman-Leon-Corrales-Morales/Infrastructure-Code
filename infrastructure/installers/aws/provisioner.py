@@ -7,7 +7,7 @@ Created on Dec 14, 2017
 '''
 import boto3
 from datetime import datetime
-
+from threading import Thread
 
 class provisioner(object):
 
@@ -105,19 +105,8 @@ class provisioner(object):
 #==============================================================================
     def setWorkers(self, count, zone):
         for i in range(1, count + 1):
-            awsInst = self.createWorker(i, zone)
-            self.logger.debug("adding " + str(awsInst[0].id) + " in " + zone)
-            awsInst[0].wait_until_running()
-            client = boto3.client('ec2',region_name=self.config['aws.region'],
-                                   aws_access_key_id=self.config['aws.access.key'],
-                                   aws_secret_access_key=self.config['aws.secret.key'])
-            waiter = client.get_waiter('instance_status_ok')
-            waiter.wait(InstanceIds=[str(awsInst[0].id)], IncludeAllInstances=True)
-            self.workers.append(awsInst[0].private_ip_address)
-            self.worksId.append(awsInst[0].id)
-            fqdn = 'dockerNode-' + zone + '-' + str(i)
-            route53 = self.addRoute53(fqdn, awsInst[0].private_ip_address)
-            self.logger.debug("DNS route: " +str(route53))
+            t = Thread(target=self.createEC2, args=(i, zone, False,))
+            t.start()
         
         
 #==============================================================================
@@ -129,19 +118,37 @@ class provisioner(object):
 #==============================================================================    
     def setManagers(self, count, zone):
         for i in range(1, count + 1):
-            awsInst = self.createManager(i, zone)
-            self.logger.debug("adding " + str(awsInst[0].id))
+            t = Thread(target=self.createEC2, args=(i, zone, True,))
+            t.start()
+
+            
+            
+    def createEC2(self, i, zone, isManager):
+            if(isManager):
+                awsInst = self.createManager(i, zone)
+            else:
+                awsInst = self.createWorker(i, zone)
+                
+            self.logger.debug("adding " + str(awsInst[0].id) + " in " + zone)
             awsInst[0].wait_until_running()
             client = boto3.client('ec2',region_name=self.config['aws.region'],
                                    aws_access_key_id=self.config['aws.access.key'],
                                    aws_secret_access_key=self.config['aws.secret.key'])
             waiter = client.get_waiter('instance_status_ok')
             waiter.wait(InstanceIds=[str(awsInst[0].id)], IncludeAllInstances=True)
-            self.managers.append(awsInst[0].private_ip_address)
-            self.managersId.append(awsInst[0].id)
-            fqdn = 'dockerManager-' + zone + '-' + str(i)
-            route53 = self.addRoute53(fqdn, awsInst[0].private_ip_address)
-            self.logger.debug("DNS route: " + str(route53) )
+            if(isManager):
+                self.managers.append(awsInst[0].private_ip_address)
+                self.managersId.append(awsInst[0].id)
+                fqdn = 'dockerManager-' + zone + '-' + str(i)
+                route53 = self.addRoute53(fqdn, awsInst[0].private_ip_address)
+                self.logger.debug("DNS route: " + str(route53) )
+            else:
+                self.workers.append(awsInst[0].private_ip_address)
+                self.worksId.append(awsInst[0].id)
+                fqdn = 'dockerNode-' + zone + '-' + str(i)
+                route53 = self.addRoute53(fqdn, awsInst[0].private_ip_address)
+                self.logger.debug("DNS route: " +str(route53))
+            
 #==============================================================================
 # Paramters:
 #   count    - Number AWS instances to loop through
