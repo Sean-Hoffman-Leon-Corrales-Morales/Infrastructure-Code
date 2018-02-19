@@ -100,4 +100,7 @@ ENV/
 # mypy
 .mypy_cache/
 /testMyCode.py
+<<<<<<< HEAD
 /bfg-1.13.0.jar
+=======
+>>>>>>> branch 'master' of ssh://git@github.com/Sean-Hoffman-Leon-Corrales-Morales/Infrastructure-Code.git

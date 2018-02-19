@@ -21,34 +21,34 @@ def loadRegistry(dtrConfig, i, logger):
     URLs = {}
     oldId = ""
     i.installDockerLocal()
-     for name, fullName, userPassword, isAdmin in zip(dtrConfig["accounts.name"], 
-                                                  dtrConfig["accounts.fullName"],
-                                                  dtrConfig["accounts.defaultPassword"], 
-                                                  dtrConfig["accounts.isAdmin"]):
+    for name, fullName, userPassword, isAdmin in zip(dtrConfig["accounts.name"], 
+                                                 dtrConfig["accounts.fullName"],
+                                                 dtrConfig["accounts.defaultPassword"], 
+                                                 dtrConfig["accounts.isAdmin"]):
            
-         accounts = {'name': name, 'fullName': fullName, 
-                     'isOrg':False, 'isAdmin': isAdmin, 'isActive': True,
-                      'password': userPassword}
-         respCode = i.addAccts(accounts)
-         logger.debug("response code: " + str(respCode))
+        accounts = {'name': name, 'fullName': fullName, 
+                    'isOrg':False, 'isAdmin': isAdmin, 'isActive': True,
+                     'password': userPassword}
+        respCode = i.addAccts(accounts)
+        logger.debug("response code: " + str(respCode))
        
-     for name in dtrConfig["accounts.orgs"]:
-         org = {'name': name, 'fullName': name , 'isOrg':True, 'isAdmin': False, 'isActive': True}
-         respCode = i.addAccts(org)
-         logger.debug("response code: " + str(respCode))
+    for name in dtrConfig["accounts.orgs"]:
+        org = {'name': name, 'fullName': name , 'isOrg':True, 'isAdmin': False, 'isActive': True}
+        respCode = i.addAccts(org)
+        logger.debug("response code: " + str(respCode))
        
-     for org, name in zip(dtrConfig["accounts.orgs"], dtrConfig["accounts.name"]):   
-         payload = {'isAdmin':True, 'isPublic': True}
-         respCode = i.addAcctToOrg( name, org, payload)
-         logger.debug("response code: " + str(respCode))    
+    for org, name in zip(dtrConfig["accounts.orgs"], dtrConfig["accounts.name"]):   
+        payload = {'isAdmin':True, 'isPublic': True}
+        respCode = i.addAcctToOrg( name, org, payload)
+        logger.debug("response code: " + str(respCode))    
        
-     for org in dtrConfig["accounts.orgs"]:
-         key = "repos." + org 
-         for repos in dtrConfig[key]: 
-             repo =  { "name": repos, "shortDescription": "Repository for " + repos, "longDescription": "This is a repo created by automation.","visibility": "public"}
-             respCode = i.createRepos(repo, org)
-             logger.debug("response code: " + str(respCode))
-      
+    for org in dtrConfig["accounts.orgs"]:
+        key = "repos." + org 
+        for repos in dtrConfig[key]: 
+            repo =  { "name": repos, "shortDescription": "Repository for " + repos, "longDescription": "This is a repo created by automation.","visibility": "public"}
+            respCode = i.createRepos(repo, org)
+            logger.debug("response code: " + str(respCode))
+     
     for image in dtrConfig["repos.images"]:
         dtrRepo = image["org"] + '/' + image["id"]
         logger.debug("DTR Repo: " + str(dtrRepo)) 
