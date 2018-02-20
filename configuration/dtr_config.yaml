@@ -1,0 +1,22 @@
+accounts.name: [service, user1, user2, user3]
+accounts.fullName: ["service account", "user1 account", "user2 account", "user3 account"]
+accounts.defaultPassword: [Password123@, Password123@, Password123@, Password123@, Password123@ ]
+accounts.isAdmin: [True, False, True, True, True]
+accounts.orgs: [org1, division1]
+repos.gce: [centos-base, wildfly, jenkins, gitlab]
+repos.apps: [myApp, mySecondApp]
+
+#@Note: please keep ids in order. out of order ids will result in a bad time.
+#e.g no going id:Thingone, id:thingtwo, id:thingone
+repos.images:
+  -
+    id: jenkins
+    org: org1 
+    name: Dockerfile
+    tag: seed,latest,1.0.0
+    value: https://Your.git.repo.raw.file
+  -
+    id: jenkins
+    org: org1
+    name: jenkins.sh
+    value: https://Your.git.repo.raw.file

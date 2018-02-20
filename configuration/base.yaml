@@ -1,0 +1,72 @@
+# This is the URL of the yum repo that must be added in order to get access to the docker-ee package
+docker.ee.url: #https://storebits.docker.com/ee/centos/sub-bcb3e940-2bc6-4eb0-85a2-3031e1f0508c
+
+# This is the yum repo that must be added to access the docker-ee package
+docker.ee.repo: #docker-ee.repo
+
+# This is the name of the docker-ee package
+docker.ee.package: #docker-ee
+
+block.disk.path: #/dev/sdb
+
+docker.disk.profile: #/etc/lvm/profile/docker-thinpool.profile
+
+docker.disk.profile.name: #docker-thinpool.profile
+
+docker.daemon.config: #/etc/docker/daemon.json
+
+docker.daemon.config.name: #daemon.json
+
+# This is the user that will manage the docker daemon
+docker.user: #<YOUR_USERNAME_HERE>
+
+# This is the docker admin user
+docker.ucp.user: #ex: admin
+
+bootstrap.user.path: #<YOUR_WORKING_PATH>
+
+bootstrap.src.path: #<YOUR_WORKING_PATH> + </CODE_FOLDER> or whatever you named the project 
+
+bootstrap.dest.path:  # We go with <YOUR_WORKING_PATH> + </CODE_FOLDER>
+
+# These is the list of firewall ports that must be opened
+docker.ports: 12376,12379,12380,12381,12382,12383,12384,12385,12386,12387,2376,2377,443,80
+#your API URL may different based on OS
+
+docker.api.url: https://index.docker.io/v1/
+
+# This is the port that the UCP manager nodes listen on for API requests
+docker.ucp.port: 2377
+
+# This is the location to store the DTR cert worker nodes use to connect to
+# the DTR the default is /etc/pki/ca-trust/source/anchors
+docker.dtr.cert.location: /etc/pki/ca-trust/source/anchors
+
+# This is the location the DTR cert is downloaded to on the installer machine
+download.location: #your Download location ex: /home/user/downloads
+download.location: /home/centos/Infrastructure-Code/downloads
+
+# Git repo token
+repo.token: FgUWnRSGAehn2PyvgU-m
+
+#AWS Configuration
+aws.access.key: #your AWS access key
+aws.secret.key: #your AWS secret key
+aws.pemFile: #Your .pem file
+aws.region: #AWS region ex: us-east-1
+aws.ami: #AMI ID ex: ami-######
+aws.worker: # EC2 type for a worker ex: m4.large
+aws.manager: # EC2 type for a manager m4.xlarge
+aws.securityGroupId: # security group id ex:  sg-########
+aws.dev: #dev subnet id if setting up a dev zone
+aws.qa: #qa subnet id if setting up a qa zone 
+aws.stress: #stress subnet id if setting up a stress zone
+aws.prod: #prod subnet id if setting up a prod zone
+aws.dmz: # dmz subnet id if setting up s dmz zone subnet-02bf0649
+aws.hostedZone: #Route 53 hosted zone ID. 
+aws.domainName: #Route 53 domain name.
+
+#AWS Configuration
+
+aws.dockerReg: #your.dns.for.DTR
+aws.dockerUCP: #your.dns.for.UCP
