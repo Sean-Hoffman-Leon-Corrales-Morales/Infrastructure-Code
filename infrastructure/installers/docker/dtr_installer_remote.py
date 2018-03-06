@@ -33,7 +33,7 @@ def installDTR(logger, config, ucpPassword, ucpUrl, host, dtrHost, password):
   if dtrHost is host:
     dtrHost = hostname
   
-  cmd = 'docker container run -it --rm docker/dtr:2.4.0 install --dtr-external-url ' + dtrHost + ' --ucp-node ' + hostname + ' --ucp-insecure-tls --ucp-username ' + config['docker.ucp.user'] + ' --ucp-password ' + ucpPassword + ' --ucp-url ' + ucpUrl
+  cmd = 'docker container run -it --rm docker/dtr:2.4.0 install --dtr-external-url ' + dtrHost + '--dtr-storage-volume docker' + ' --ucp-node ' + hostname + ' --ucp-insecure-tls --ucp-username ' + config['docker.ucp.user'] + ' --ucp-password ' + ucpPassword + ' --ucp-url ' + ucpUrl
   output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
   
   if 'success' in output.lower():
