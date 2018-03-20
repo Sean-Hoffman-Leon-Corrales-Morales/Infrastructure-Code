@@ -20,7 +20,7 @@ config = None
 def loadRegistry(dtrConfig, i, logger):
     URLs = {}
     oldId = ""
-    #i.installDockerLocal()
+    i.installDockerLocal()
     for name, fullName, userPassword, isAdmin in zip(dtrConfig["accounts.name"], 
                                                  dtrConfig["accounts.fullName"],
                                                  dtrConfig["accounts.defaultPassword"], 

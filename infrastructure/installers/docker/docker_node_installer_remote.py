@@ -95,7 +95,8 @@ class installNode(object):
                 
                 if isExecuteSuccess is True:
                     logger.debug('Successfully added worker node to Swarm')
-                  
+                if(awsFlag):        
+                    self.createZoneLabel(logger, aws, config, managerHosts, ucpUrl, ucpPassword) 
                 if dtrCounter < dtrCount:
                     if awsFlag is True:
                         logger.debug("sending to Route53: dtr.*domain -> " + str(host))
@@ -444,6 +445,7 @@ class installNode(object):
                 availability = r['Spec']['Availability']
                 nodesUpdateURL = ucpUrl + '/nodes/' + ID + '/update?version=' + str(version)
                 payload = {'Availability': availability,'Name': name, 'Role': role ,'Labels': newLabels}
+                logger.debug("URL -> " + str(nodesUpdateURL) + " payload -> " + str(payload))
                 response = self.requester.post(logger, nodesUpdateURL, payload, headers)
                 
                 

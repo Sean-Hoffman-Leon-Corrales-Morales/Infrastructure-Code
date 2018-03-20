@@ -51,9 +51,9 @@ class provisioner(object):
         zone = ""
         if ipaddress in self.zoneMap: 
             zone = self.zoneMap[ipaddress]
+        self.logger.debug("getZone mapping - " + ipaddress + " maped to: " + zone)
         return zone
-    
-    
+   
     
 #==============================================================================
 # Paramters:
@@ -205,8 +205,8 @@ class provisioner(object):
                                             'Value': 'dockerNode-' + zone + '-' + str(count)}
                                         ]}
                                  ])
-            
             self.zoneMap[newInst[0].private_ip_address] = zone
+            self.logger.debug("zoneMap[" + newInst[0].private_ip_address + "] -> " + zone)
             return newInst
     
 #==============================================================================
@@ -245,6 +245,7 @@ class provisioner(object):
                                         ]}
                                  ])
         self.zoneMap[newInst[0].private_ip_address] = zone
+        self.logger.debug("zoneMap[" + newInst[0].private_ip_address + "] -> " + zone)
         return newInst
     
 #==============================================================================
