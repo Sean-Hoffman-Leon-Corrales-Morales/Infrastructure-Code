@@ -7,7 +7,6 @@ import socket
 import infrastructure.installers.core.os_executor as os_executor
 import infrastructure.utilities.http_request as http_request
 import infrastructure.installers.docker.docker_node_installer_remote as installer_remote
-from asn1crypto._ffi import null
 from pyasn1.type.univ import Null
 
  
@@ -71,12 +70,18 @@ class docker_image(object):
         
         self.logger.debug('Successfully installed Docker EE')
         
-        cmd = 'service docker start'
+        cmd = 'systemctl enable docker'
+        output = os_executor.executeCmd(self.logger, cmd)      
+        
+        if 'error' in output.lower(): 
+            raise ValueError('Unable to enable docker.')
+        
+        cmd = 'systemctl start docker'
         output = os_executor.executeCmd(self.logger, cmd)      
         
         if 'error' in output.lower(): 
             raise ValueError('Unable to start docker.')
-               
+                        
     def buildFromRepo(self, URLs, folder, repo, tag):
         buildDir = self.config["download.location"] + '/' + folder
         cmd = 'mkdir ' + buildDir

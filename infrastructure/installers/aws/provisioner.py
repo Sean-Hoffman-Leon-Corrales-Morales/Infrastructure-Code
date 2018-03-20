@@ -23,6 +23,7 @@ class provisioner(object):
         self.managers = []
         self.managersId = []
         self.worksId = []
+        self.zoneMap = {}
         self.config = config
         self.logger = logger
 
@@ -40,6 +41,19 @@ class provisioner(object):
     
     def getWorkersId(self):
         return self.worksId
+#===============================================================================
+# Paramters:
+#   host     - This is the IP address of the host who's zone is being looked up.
+# Description: for the current provision, this function returns a hosts zone
+#              based on the IP address and the base yaml config file.  
+#===============================================================================
+    def getZone(self, ipaddress):
+        zone = ""
+        if ipaddress in self.zoneMap: 
+            zone = self.zoneMap[ipaddress]
+        return zone
+    
+    
     
 #==============================================================================
 # Paramters:
@@ -105,9 +119,6 @@ class provisioner(object):
 #==============================================================================
     def setWorkers(self, count, zone):
         for i in range(1, count + 1):
-            #p = multiprocessing.Process(target=self.createEC2, args=(i, zone, False,))
-            #p.start()
-            #p.join()
             self.createEC2(i, zone, False)
         
         
@@ -120,9 +131,6 @@ class provisioner(object):
 #==============================================================================    
     def setManagers(self, count, zone):
         for i in range(1, count + 1):
-            #p = multiprocessing.Process(target=self.createEC2, args=(i, zone, True,))
-            #p.start()
-            #p.join()
             self.createEC2(i, zone, True)
 
 #==============================================================================
@@ -198,7 +206,7 @@ class provisioner(object):
                                         ]}
                                  ])
             
-            # newinst[0].private_ip_address
+            self.zoneMap[newInst[0].private_ip_address] = zone
             return newInst
     
 #==============================================================================
@@ -236,6 +244,7 @@ class provisioner(object):
                                             'Value': 'dockerManager-'+ zone + '-' + str(count)}
                                         ]}
                                  ])
+        self.zoneMap[newInst[0].private_ip_address] = zone
         return newInst
     
 #==============================================================================

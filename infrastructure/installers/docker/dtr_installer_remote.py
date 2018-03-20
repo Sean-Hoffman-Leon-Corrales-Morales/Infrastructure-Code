@@ -26,21 +26,21 @@ import socket
 #              install the DTR, and configure it. 
 #===============================================================================
 def installDTR(logger, config, ucpPassword, ucpUrl, host, dtrHost, password):
-  logger.debug('Beginning installation of DTR.')  
-  output = None
-  hostname = socket.gethostbyaddr(host)[0]
+    logger.debug('Beginning installation of DTR on host: ' + str(host) + ' - ' + str(dtrHost) + ' .')  
+    output = None
+    hostname = socket.gethostbyaddr(host)[0]
   
-  if dtrHost is host:
-    dtrHost = hostname
+    if dtrHost is host:
+        dtrHost = hostname
+    
+    cmd = 'docker container run -it --rm docker/dtr:'+ str(config['docker.dtr.version']) + ' install --dtr-storage-volume docker' + ' --dtr-external-url ' + dtrHost  + ' --ucp-node ' + hostname + ' --ucp-insecure-tls --ucp-username ' + config['docker.ucp.user'] + ' --ucp-password ' + ucpPassword + ' --ucp-url ' + ucpUrl  
+    output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
   
-  cmd = 'docker container run -it --rm docker/dtr:2.4.0 install --dtr-external-url ' + dtrHost + '--dtr-storage-volume docker' + ' --ucp-node ' + hostname + ' --ucp-insecure-tls --ucp-username ' + config['docker.ucp.user'] + ' --ucp-password ' + ucpPassword + ' --ucp-url ' + ucpUrl
-  output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
+    if 'success' in output.lower():
+        isExecuteSuccess = True
+        logger.debug('+++ Successfully installed the DTR +++')
   
-  if 'success' in output.lower():
-    isExecuteSuccess = True
-    logger.debug('+++ Successfully installed the DTR +++')
+    else:
+        logger.error('An error was encountered installing the DTR. ' + output)
   
-  else:
-    logger.error('An error was encountered installing the DTR. ' + output)
-  
-  return isExecuteSuccess
+    return isExecuteSuccess

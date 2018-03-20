@@ -1,5 +1,5 @@
 # This is the URL of the yum repo that must be added in order to get access to the docker-ee package
-docker.ee.url: #https://storebits.docker.com/ee/centos/sub-bcb3e940-2bc6-4eb0-85a2-3031e1f0508c
+docker.ee.url: #https://storebits.docker.com/ee/centos/sub-####-####-####
 
 # This is the yum repo that must be added to access the docker-ee package
 docker.ee.repo: #docker-ee.repo
@@ -9,6 +9,10 @@ docker.ee.package: #docker-ee
 
 block.disk.path: #/dev/sdb
 
+docker.ucp.version: #2.2.5
+
+docker.dtr.version: #2.4.2
+
 docker.disk.profile: #/etc/lvm/profile/docker-thinpool.profile
 
 docker.disk.profile.name: #docker-thinpool.profile
@@ -16,6 +20,8 @@ docker.disk.profile.name: #docker-thinpool.profile
 docker.daemon.config: #/etc/docker/daemon.json
 
 docker.daemon.config.name: #daemon.json
+
+docker.infrastructure.label: #your infrastructure label
 
 # This is the user that will manage the docker daemon
 docker.user: #<YOUR_USERNAME_HERE>
@@ -47,7 +53,7 @@ download.location: #your Download location ex: /home/user/downloads
 download.location: /home/centos/Infrastructure-Code/downloads
 
 # Git repo token
-repo.token: FgUWnRSGAehn2PyvgU-m
+repo.token: ####
 
 #AWS Configuration
 aws.access.key: #your AWS access key

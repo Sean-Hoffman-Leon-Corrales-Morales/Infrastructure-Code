@@ -34,7 +34,7 @@ def installUCP(logger, config, ucpPassword, licenseFilePath, host, password):
     dest = config['bootstrap.user.path'] + licenseFilePath.split('/')[-1]
     os_executor.transferFile(logger, config, host, password, src, dest)
     
-    cmd = 'docker container run --rm -it --name ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp:2.2.4 install --host-address ' + host + ' --admin-username ' + config['docker.ucp.user'] + ' --admin-password ' + ucpPassword + ' --license "$(cat ' + dest + ')"' 
+    cmd = 'docker container run --rm -it --name ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp:'+ str(config['docker.ucp.version']) +' install --host-address ' + host + ' --admin-username ' + config['docker.ucp.user'] + ' --admin-password ' + ucpPassword + ' --license "$(cat ' + dest + ')"' 
     output = os_executor.executeRemoteCommand(logger, config, cmd, host, password)
     
     if 'error' not in output.lower():

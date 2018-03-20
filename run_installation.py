@@ -20,18 +20,18 @@ def runPreInstall(inputs):
     parser.add_argument('-p', '--password', dest='osPassword', help='password for os user.')
     parser.add_argument('-dp', '--dockerPassword', dest='dockerPassword', help='password for UCP and DTR user.')
     parser.add_argument('-l', '--licensePath', dest='licenseFilePath', help='path to DockerEE license.')
-    parser.add_argument('-d', '--dtrs', dest='dtrCount', type=int, help='the number of DTR instances to install.')
-    parser.add_argument('-wd', '--workersDev', dest='workerDevCount', type=int, help='the number of worker nodes to install.')
-    parser.add_argument('-wq', '--workersQa', dest='workerQaCount', type=int, help='the number of worker nodes to install.')
-    parser.add_argument('-ws', '--workersStress', dest='workerStressCount', type=int, help='the number of worker nodes to install.')
-    parser.add_argument('-wz', '--workersDMZ', dest='workerDmzCount', type=int, help='the number of worker nodes to install.')
-    parser.add_argument('-wp', '--workersProd', dest='workerProdCount', type=int, help='the number of worker nodes to install.')    
-    parser.add_argument('-md', '--managersDev', dest='managerDevCount', type=int, help='the number of manager nodes to install.')
-    parser.add_argument('-mq', '--managersQa', dest='managerQaCount', type=int, help='the number of manager nodes to install.')
-    parser.add_argument('-ms', '--managersStress', dest='managerStressCount', type=int, help='the number of manager nodes to install.')
-    parser.add_argument('-mz', '--managersDMZ', dest='managerDmzCount', type=int, help='the number of manager nodes to install.')
-    parser.add_argument('-mp', '--managersProd', dest='managerProdCount', type=int, help='the number of manager nodes to install.')
-    parser.add_argument('-ldtrp', '--loadDtrPath', dest='loadDtrPath', help='Path to the yml file that will pre-load the DTR.')
+    parser.add_argument('-d', '--dtrs', dest='dtrCount', type=int, default=0, help='the number of DTR instances to install.')
+    parser.add_argument('-wd', '--workersDev', dest='workerDevCount', type=int, default=0, help='the number of worker nodes to install.')
+    parser.add_argument('-wq', '--workersQa', dest='workerQaCount', type=int, default=0, help='the number of worker nodes to install.')
+    parser.add_argument('-ws', '--workersStress', dest='workerStressCount', type=int, default=0, help='the number of worker nodes to install.')
+    parser.add_argument('-wz', '--workersDMZ', dest='workerDmzCount', type=int, default=0, help='the number of worker nodes to install.')
+    parser.add_argument('-wp', '--workersProd', dest='workerProdCount', type=int, default=0, help='the number of worker nodes to install.')    
+    parser.add_argument('-md', '--managersDev', dest='managerDevCount', type=int, default=0, help='the number of manager nodes to install.')
+    parser.add_argument('-mq', '--managersQa', dest='managerQaCount', type=int, default=0, help='the number of manager nodes to install.')
+    parser.add_argument('-ms', '--managersStress', dest='managerStressCount', type=int, default=0, help='the number of manager nodes to install.')
+    parser.add_argument('-mz', '--managersDMZ', dest='managerDmzCount', type=int, default=0, help='the number of manager nodes to install.')
+    parser.add_argument('-mp', '--managersProd', dest='managerProdCount', type=int, default=0, help='the number of manager nodes to install.')
+    parser.add_argument('-ldtrp', '--loadDtrPath', dest='loadDtrPath', default="", help='Path to the yml file that will pre-load the DTR.')
 
     args = parser.parse_args()
     if not args.osPassword: #handle a no password argument
@@ -67,9 +67,6 @@ def runPreInstall(inputs):
         else:
             print 'The necessary python packages were not installed.'
               
-    # else:
-     #     print 'Unable to find the license file at: ' + licenseFilePath
-    
     else:
         print 'Check the input parameters and retry. There is a parameter(s) missing'
     

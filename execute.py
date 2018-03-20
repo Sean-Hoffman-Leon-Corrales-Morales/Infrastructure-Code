@@ -20,7 +20,7 @@ config = None
 def loadRegistry(dtrConfig, i, logger):
     URLs = {}
     oldId = ""
-    i.installDockerLocal()
+    #i.installDockerLocal()
     for name, fullName, userPassword, isAdmin in zip(dtrConfig["accounts.name"], 
                                                  dtrConfig["accounts.fullName"],
                                                  dtrConfig["accounts.defaultPassword"], 
@@ -48,14 +48,39 @@ def loadRegistry(dtrConfig, i, logger):
             repo =  { "name": repos, "shortDescription": "Repository for " + repos, "longDescription": "This is a repo created by automation.","visibility": "public"}
             respCode = i.createRepos(repo, org)
             logger.debug("response code: " + str(respCode))
-     
-    for image in dtrConfig["repos.images"]:
+            
+    for image in dtrConfig["repos.images.base"]:
+        #
+        #@TODO: to support Artifactory/docker image pull commands. change image["value"] to image["URL"] and add image["cmd"] to dtr yaml file
+        #The do a check here that first makes sure that cmd and URL are both noth set
+        #Then...
+        #
         dtrRepo = image["org"] + '/' + image["id"]
-        logger.debug("DTR Repo: " + str(dtrRepo)) 
+        #if URL is set do this: 
+        URLs = {image["name"] : image["value"]} 
+        logger.debug("about to build: " + str(URLs) + " image: " + image["id"] + " repo: " + dtrRepo)
+        i.buildFromRepo(URLs, image["id"], dtrRepo, image["tag"])
+        #else create a new method in docker_image to build from cmd.
+        
+        i.pushToDTR(dtrRepo)
+        URLs.clear()
+        
+    for image in dtrConfig["repos.images.middle"]:
+        dtrRepo = image["org"] + '/' + image["id"]
+        URLs = {image["name"] : image["value"]} 
+        logger.debug("about to build: " + str(URLs) + " image: " + str(image["id"]) + " repo: " + dtrRepo)
+        i.buildFromRepo(URLs, image["id"], dtrRepo, image["tag"])
+        i.pushToDTR(dtrRepo)
+        URLs.clear()
+        
+             
+    for image in dtrConfig["repos.images.app"]:
+        dtrRepo = image["org"] + '/' + image["id"]
+        logger.debug("DTR app layer Repo: " + str(dtrRepo)) 
         if( oldId == image["id"] and oldId is not ""):
             URLs.update( { image["name"] : image["value"]})
         else:
-            logger.debug("about to build: " + str(URLs) + " image: " + image["id"] + " repo: " + dtrRepo)
+            logger.debug("about to build: " + str(URLs) + " image: " + str(image["id"]) + " repo: " + dtrRepo)
             i.buildFromRepo(URLs, image["id"], dtrRepo, 'seed')
             logger.debug("pushing to repo: " + dtrRepo)
             i.pushToDTR(dtrRepo)
@@ -97,8 +122,3 @@ if __name__ == '__main__':
         i = image.docker_image(logger, config.getConfig(), dockerPassword)
         loadRegistry(dtrConfig, i, logger)
 
-
-
-
-
-        

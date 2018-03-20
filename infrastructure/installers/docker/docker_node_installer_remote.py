@@ -12,7 +12,6 @@ from infrastructure.installers.docker.dockeree_installer_remote import executeDo
 from infrastructure.installers.docker.ucp_installer_remote import installUCP
 from infrastructure.installers.docker.dtr_installer_remote import installDTR
 import infrastructure.installers.core.os_executor as os_executor
-from pip._vendor.pyparsing import empty
 
 
 class installNode(object):
@@ -55,7 +54,6 @@ class installNode(object):
             logger.debug('Connecting to host ' + host)
             logger.debug('Building ' + str(managerCount) + ' manager nodes')           
             isExecuteSuccess = executeDockerInstall( logger, config, host, password)
-
             if managerCounter <= managerCount: 
             
                 if isExecuteSuccess is True and ucpInstalled is False:
@@ -76,7 +74,10 @@ class installNode(object):
                     ucpInstalled = True
             
                 managerCounter += 1
-        
+    
+        if(awsFlag):        
+            self.createZoneLabel(logger, aws, config, managerHosts, ucpUrl, ucpPassword)
+
         workerHosts = aws.provisionWorkers(workers['QaCount'], workers['DevCount'], workers['StressCount'],
                                        workers['DmzCount'], workers['ProdCount'])
         workerCount = len(workerHosts)
@@ -100,10 +101,14 @@ class installNode(object):
                         logger.debug("sending to Route53: dtr.*domain -> " + str(host))
                         dtrHost = aws.addRoute53("dtr", str(host))
                         dtrIp = host
-                    if dtrHost is empty: 
+                    if dtrHost is None: 
                         dtrHost = host
                         dtrIp = host
                     isExecuteSuccess = installDTR(logger, config, ucpPassword, ucpUrl, host, dtrHost, password)
+                    dtrKey = config['docker.infrastructure.label'] + '.dtr'
+                    dtrLabel = {}
+                    dtrLabel[dtrKey] = "true"
+                    self.createLabel(logger, config, ucpUrl, ucpPassword, dtrIp, dtrLabel)
               
                 if isExecuteSuccess is True and dtrCounter < dtrCount:
                     dtrCounter += 1
@@ -164,7 +169,7 @@ class installNode(object):
 #                4. Restarts the Docker service.
 #===============================================================================
     def registerWithDTR(self, logger, config, host, dtrHost, dtrIp, ucpPassword, password, local = False):
-        logger.debug('+++ Beginning registration with DTR +++')
+        logger.debug('+++ Beginning registration of ' + str(dtrIp) + ' with DTR +++')
         # this was dtrHost
         hostname = socket.gethostbyaddr(dtrIp)[0]
         
@@ -352,3 +357,93 @@ class installNode(object):
             logger.error('An error was encountered adding a manager node')  
             
         return isExecuteSuccess
+#==============================================================================
+# Paramters:
+#   logger   - This is the logger used to record log messages.
+#   config   - This is the dict of configuration parameters that are obtained 
+#              from the base.yaml file.
+#   aws      - aws or provisioning object that contains a getZone method
+#   hosts    - This is the list of host getting a label.
+#   ucpPassword - This is the password to be to login to the UCP.
+#   ucpUrl   - The UCP url 
+#   
+# Description: This function will create host label for zones in the base  
+#              yaml config file. 
+#
+#==============================================================================    
+    def createZoneLabel(self, logger, aws, config, hosts, ucpUrl, ucpPassword):
+        logger.debug('+++ Setting a UCP zone label +++')
+        authToken = self.getAuthToken(logger, config, ucpUrl, ucpPassword)
+        headers = {'Authorization': 'Bearer ' + authToken , 'Content-Type': 'application/json'}
+        nodesUpdateURL = ""
+        nodesURL = ucpUrl + '/nodes'
+        keyLabel = config['docker.infrastructure.label']
+        response = self.requester.get(logger, nodesURL, headers)
+        for r in response:
+            print r
+            for h in hosts:
+                payload = None    
+                if h == str(r['Status']['Addr']):
+                    ID = str(r['ID'])
+                    version = r['Version']['Index']
+                    name = r['Description']['Hostname']
+                    role = r['Spec']['Role']
+                    labels = r['Spec']['Labels']
+                    availability = r['Spec']['Availability']
+                    zone = aws.getZone(h)
+                    nodesUpdateURL = ucpUrl + '/nodes/' + ID + '/update?version=' + str(version)
+                    if zone is config['aws.qa']:
+                        labels[keyLabel] = "qa"
+                        payload = {'Availability': availability,'Name': name, 'Role': role ,'Labels': labels} 
+                    if zone is config['aws.dev']:
+                        labels[keyLabel] = "dev"
+                        payload = {'Availability': availability,'Name': name, 'Role': role ,'Labels': labels} 
+                    if zone is config['aws.stress']: 
+                        labels[keyLabel] = "stress"
+                        payload = {'Availability': availability,'Name': name, 'Role': role ,'Labels': labels} 
+                    if zone is config['aws.dmz']:
+                        labels[keyLabel] = "dmz"
+                        payload = {'Availability': availability,'Name': name, 'Role': role ,'Labels': labels} 
+                    if zone is config['aws.prod']: 
+                        labels[keyLabel] = "prod"
+                        payload = {'Availability': availability,'Name': name, 'Role': role ,'Labels': labels} 
+                    
+                    if payload is not "":
+                        response = self.requester.post(logger, nodesUpdateURL, payload, headers)
+                        
+#==============================================================================
+# Paramters:
+#   logger   - This is the logger used to record log messages.
+#   config   - This is the dict of configuration parameters that are obtained 
+#              from the base.yaml file.
+#   aws      - aws or provisioning object that contains a getZone method
+#   host    - This is the IP of a host getting a label.
+#   ucpPassword - This is the password to be to login to the UCP.
+#   ucpUrl   - The UCP url 
+#   label    - Key vaule dict of label(s) to apply to a host.
+#   
+# Description: This function will create a host label.
+#
+#==============================================================================                            
+    def createLabel(self, logger, config, ucpUrl, ucpPassword, host, label):
+        logger.debug('+++ Setting a UCP zone label +++')
+        authToken = self.getAuthToken(logger, config, ucpUrl, ucpPassword)
+        headers = {'Authorization': 'Bearer ' + authToken , 'Content-Type': 'application/json'}
+        nodesUpdateURL = ""
+        nodesURL = ucpUrl + '/nodes'
+        response = self.requester.get(logger, nodesURL, headers)
+        for r in response:
+            if host == str(r['Status']['Addr']):
+                ID = str(r['ID'])
+                version = r['Version']['Index']
+                name = r['Description']['Hostname']
+                role = r['Spec']['Role']
+                oldLabels = r['Spec']['Labels']
+                newLabels = oldLabels.copy()
+                newLabels = newLabels.update(label)
+                availability = r['Spec']['Availability']
+                nodesUpdateURL = ucpUrl + '/nodes/' + ID + '/update?version=' + str(version)
+                payload = {'Availability': availability,'Name': name, 'Role': role ,'Labels': newLabels}
+                response = self.requester.post(logger, nodesUpdateURL, payload, headers)
+                
+                

@@ -1,22 +1,51 @@
-accounts.name: [service, user1, user2, user3]
-accounts.fullName: ["service account", "user1 account", "user2 account", "user3 account"]
-accounts.defaultPassword: [Password123@, Password123@, Password123@, Password123@, Password123@ ]
-accounts.isAdmin: [True, False, True, True, True]
-accounts.orgs: [org1, division1]
-repos.gce: [centos-base, wildfly, jenkins, gitlab]
-repos.apps: [myApp, mySecondApp]
+accounts.name: # ex: [service, user1, user2, user3]
+accounts.fullName: #ex: ["service account", "user1 account", "user2 account", "user3 account"]
+accounts.defaultPassword: #ex: [Password123@, Password123@, Password123@, Password123@, Password123@ ]
+accounts.isAdmin: #ex: [True, False, True, True, True]
+accounts.orgs: #ex: [org1, division1]
+repos.org: #ex: [centos-base, python2, java, jenkins, gitlab]
+repos.apps: #ex: [myApp, mySecondApp]
 
 #@Note: please keep ids in order. out of order ids will result in a bad time.
 #e.g no going id:Thingone, id:thingtwo, id:thingone
-repos.images:
-  -
-    id: jenkins
-    org: org1 
-    name: Dockerfile
-    tag: seed,latest,1.0.0
-    value: https://Your.git.repo.raw.file
-  -
-    id: jenkins
-    org: org1
-    name: jenkins.sh
-    value: https://Your.git.repo.raw.file
+
+repos.images.base:
+   -
+     id: #centos-base
+     org: #your DTR org i.e repos.w/e from line 6
+     name: #Dockerfile
+     tag: #1.00.00
+     value: #GITHUB/GITLABRepo URL
+     
+repos.images.middle:
+   -
+     id: #ex: python2
+     org: #your DTR org
+     name: #Dockerfile
+     tag: #1.00.00
+     value: #GITHUB/GITLABRepo URL
+   -
+     id: #ex: java
+     org: #your DTR org
+     name: #Dockerfile
+     tag: #1.00.00
+     value: #GITHUB/GITLABRepo URL
+     
+repos.images.app:
+   -
+     id: #ex: jenkins
+     org: #your DTR org 
+     name: #Dockerfile
+     tag: #1.0.0
+     value: #GITHUB/GITLABRepo URL
+   -
+     id: #jenkins
+     org: #your DTR org
+     name: #Other asset needed ex: jenkins.sh
+     value: ##GITHUB/GITLABRepo URL
+   -
+     id: #ex: gitlab
+     org: #your DTR org
+     name: #Dockerfile
+     tag: #1.00.00
+     value: #GITHUB/GITLABRepo URL
