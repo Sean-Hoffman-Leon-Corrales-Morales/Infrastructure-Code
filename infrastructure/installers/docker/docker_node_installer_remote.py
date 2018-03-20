@@ -96,7 +96,7 @@ class installNode(object):
                 if isExecuteSuccess is True:
                     logger.debug('Successfully added worker node to Swarm')
                 if(awsFlag):        
-                    self.createZoneLabel(logger, aws, config, managerHosts, ucpUrl, ucpPassword) 
+                    self.createZoneLabel(logger, aws, config, workerHosts, ucpUrl, ucpPassword) 
                 if dtrCounter < dtrCount:
                     if awsFlag is True:
                         logger.debug("sending to Route53: dtr.*domain -> " + str(host))
