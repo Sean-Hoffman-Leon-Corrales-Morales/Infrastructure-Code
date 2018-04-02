@@ -15,7 +15,6 @@ LOGGING_CONFIG_FILE_PATH = 'configuration/logging.yaml'
 config = None
 
 
-
 def loadRegistry(dtrConfig, i, logger):
     URLs = {}
     oldId = ""

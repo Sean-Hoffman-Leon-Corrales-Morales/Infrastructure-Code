@@ -6,7 +6,6 @@ Created on Nov 22, 2017
 
 import subprocess
 
-
 #==============================================================================
 # Paramters:
 #   cmd      - This is the shell command to be executed on the remote host.

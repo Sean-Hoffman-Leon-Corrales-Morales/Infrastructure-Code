@@ -3,7 +3,6 @@ Created on Dec 14, 2017
 
 @author: Leon Corrales Morales
 
-
 '''
 import boto3, multiprocessing
 from datetime import datetime
