@@ -10,7 +10,6 @@ import infrastructure.utilities.config_logging as setupLogging
 import infrastructure.installers.docker.docker_node_installer_remote as installNode
 import sys
 
-
 YAML_CONFIG_FILE_PATH = 'configuration/base.yaml'
 LOGGING_CONFIG_FILE_PATH = 'configuration/logging.yaml'
 config = None
