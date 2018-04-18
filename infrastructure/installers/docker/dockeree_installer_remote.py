@@ -67,7 +67,7 @@ def executeDockerInstall(logger, config, host, password):
 #              from the base.yaml file.
 #   host     - This is the host being logged into to execute the command.
 #   password - This is the password to be to login to remote servers via ssh.
-# Description: This function add the Docker yum repo, so that Docker EE can be
+# Description: This function adds the Docker yum repo, so that Docker EE can be
 #              installed.  
 #==============================================================================
 def preInstallConfig(logger, config, host, password):

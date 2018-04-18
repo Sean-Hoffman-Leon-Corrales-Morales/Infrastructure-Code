@@ -15,7 +15,8 @@ repos.images.base:
      org: #your DTR org i.e repos.w/e from line 6
      name: #Dockerfile
      tag: #1.00.00
-     value: #GITHUB/GITLABRepo URL
+     repo: #GITHUB/GITLABRepo URL
+     file: #File path. If set Repo is not used.
      
 repos.images.middle:
    -
@@ -23,13 +24,15 @@ repos.images.middle:
      org: #your DTR org
      name: #Dockerfile
      tag: #1.00.00
-     value: #GITHUB/GITLABRepo URL
+     repo: #GITHUB/GITLABRepo URL
+     file: #File path. If set Repo is not used.
    -
      id: #ex: java
      org: #your DTR org
      name: #Dockerfile
      tag: #1.00.00
-     value: #GITHUB/GITLABRepo URL
+     repo: #GITHUB/GITLABRepo URL
+     file: #File path. If set Repo is not used.
      
 repos.images.app:
    -
@@ -37,15 +40,18 @@ repos.images.app:
      org: #your DTR org 
      name: #Dockerfile
      tag: #1.0.0
-     value: #GITHUB/GITLABRepo URL
+     repo: #GITHUB/GITLABRepo URL
+     file: #File path. If set Repo is not used.
    -
      id: #jenkins
      org: #your DTR org
      name: #Other asset needed ex: jenkins.sh
-     value: ##GITHUB/GITLABRepo URL
+     repo: #GITHUB/GITLABRepo URL
+     file: #File path. If set Repo is not used.
    -
      id: #ex: gitlab
      org: #your DTR org
      name: #Dockerfile
      tag: #1.00.00
-     value: #GITHUB/GITLABRepo URL
+     repo: #GITHUB/GITLABRepo URL
+     file: #File path. If set Repo is not used.

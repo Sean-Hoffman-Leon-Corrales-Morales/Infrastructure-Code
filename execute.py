@@ -55,36 +55,53 @@ def loadRegistry(dtrConfig, i, logger):
         #
         dtrRepo = image["org"] + '/' + image["id"]
         #if URL is set do this: 
-        URLs = {image["name"] : image["value"]} 
-        logger.debug("about to build: " + str(URLs) + " image: " + image["id"] + " repo: " + dtrRepo)
-        i.buildFromRepo(URLs, image["id"], dtrRepo, image["tag"])
+        if image["file"] is None or "":
+            URLs = {image["name"] : image["repo"]} 
+            logger.debug("about to build: " + str(URLs) + " image: " + image["id"] + " repo: " + dtrRepo)
+            i.buildFromRepo(URLs, image["id"], dtrRepo, image["tag"])
+        else:
+            logger.debug("about to build:" + str(image["file"]) + " image: " + image["id"] + " repo: " + dtrRepo)
+            i.buildFromFile(image["file"], dtrRepo, image["tag"])
         #else create a new method in docker_image to build from cmd.
-        
         i.pushToDTR(dtrRepo)
         URLs.clear()
         
     for image in dtrConfig["repos.images.middle"]:
         dtrRepo = image["org"] + '/' + image["id"]
-        URLs = {image["name"] : image["value"]} 
-        logger.debug("about to build: " + str(URLs) + " image: " + str(image["id"]) + " repo: " + dtrRepo)
-        i.buildFromRepo(URLs, image["id"], dtrRepo, image["tag"])
+        if image["file"] is None or "":
+            URLs = {image["name"] : image["repo"]} 
+            logger.debug("about to build: " + str(URLs) + " image: " + str(image["id"]) + " repo: " + dtrRepo)
+            i.buildFromRepo(URLs, image["id"], dtrRepo, image["tag"])
+        else:
+            logger.debug("about to build:" + str(image["file"]) + " image: " + image["id"] + " repo: " + dtrRepo)
+            i.buildFromFile(image["file"], dtrRepo, image["tag"])
         i.pushToDTR(dtrRepo)
         URLs.clear()
         
              
     for image in dtrConfig["repos.images.app"]:
         dtrRepo = image["org"] + '/' + image["id"]
-        logger.debug("DTR app layer Repo: " + str(dtrRepo)) 
-        if( oldId == image["id"] and oldId is not ""):
-            URLs.update( { image["name"] : image["value"]})
+        logger.debug("DTR app layer Repo: " + str(dtrRepo))
+        
+        if image['file'] is None or "":      
+            #this is allowing for multiple files    
+            if( oldId == image["id"] and oldId is not ""):
+                URLs.update( { image["name"] : image["repo"]})
+            else:
+                logger.debug("about to build: " + str(URLs) + " image: " + str(image["id"]) + " repo: " + dtrRepo)
+                i.buildFromRepo(URLs, image["id"], dtrRepo, 'seed')
+                logger.debug("pushing to repo: " + dtrRepo)
+                i.pushToDTR(dtrRepo)
+                URLs.clear()
+                URLs = {image["name"] : image["repo"]} 
         else:
-            logger.debug("about to build: " + str(URLs) + " image: " + str(image["id"]) + " repo: " + dtrRepo)
-            i.buildFromRepo(URLs, image["id"], dtrRepo, 'seed')
-            logger.debug("pushing to repo: " + dtrRepo)
-            i.pushToDTR(dtrRepo)
-            URLs.clear()
-            URLs = {image["name"] : image["value"]} 
-        oldId = image["id"]
+            if( oldId == image["file"] and oldId is not ""):
+                logger.debug("build asset: " + image["file"])
+            else:
+                logger.debug("about to build:" + str(image["file"]) + " image: " + image["id"] + " repo: " + dtrRepo)
+                i.buildFromFile(image["file"], dtrRepo, image["tag"])
+            
+        oldId = image["id"] if not image["file"] else image["file"]
 
 if __name__ == '__main__':
     logger = setupLogging.config_logging().getLogger(LOGGING_CONFIG_FILE_PATH)
@@ -113,10 +130,17 @@ if __name__ == '__main__':
     logger.debug('Manager Total Count ' + str(managers['DevCount'] + managers['QaCount'] + managers['StressCount'] + managers['DmzCount'] + managers['ProdCount']))
     config = parser.config_parser(logger, YAML_CONFIG_FILE_PATH)
     installer = installNode.installNode()
-    installer.install(logger, config.getConfig(), managers, workers, dtrCount, osPassword, dockerPassword, licenseFilePath)
+    if licenseFilePath is not None or "":
+        installer.install(logger, config.getConfig(), managers, workers, dtrCount, osPassword, dockerPassword, licenseFilePath)
+    else:
+        logger.debug("add to existing UCP")
+        ucpInstalled = True
+        installer.install(logger, config.getConfig(), managers, workers, dtrCount, osPassword, dockerPassword, "", ucpInstalled)
+        
     if loadDtrPath:
         dtrConfigInst = parser.config_parser(logger, loadDtrPath)
         dtrConfig = dtrConfigInst.getConfig()
         i = image.docker_image(logger, config.getConfig(), dockerPassword)
         loadRegistry(dtrConfig, i, logger)
+        i.enableHRM()
 

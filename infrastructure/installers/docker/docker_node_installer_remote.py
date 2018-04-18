@@ -34,12 +34,10 @@ class installNode(object):
 # Description: This function will coordinate the installation of the complete Docker 
 #              installation. 
 #===============================================================================
-    def install(self, logger, config, managers, workers, dtrCount, password, ucpPassword, licenseFilePath):
+    def install(self, logger, config, managers, workers, dtrCount, password, ucpPassword, licenseFilePath, ucpInstalled = False, awsFlag = True):
         managerCounter = 0 
         workerCounter = 0  
         dtrCounter = 0
-        awsFlag = True #<===== HARD CODED CHANGE FOR ON-SITE. Need to decide how to handle it in the above classes 
-        ucpInstalled = False
         ucpUrl = None
         dtrHost = None
         dtrIp = None
@@ -62,16 +60,19 @@ class installNode(object):
                         logger.debug("sending to Route53: ucp.*domain -> " + str(host))
                         aws.addRoute53("ucp", str(host))
                     isExecuteSuccess = installUCP(logger, config, ucpPassword, licenseFilePath, host, password)
+                    ucpUrl = 'https://' + host
+                    ucpInstalled = True
     
                 elif isExecuteSuccess is False:
                     logger.error('An error was encountered installing Docker EE')
     
                 elif ucpInstalled is True:
+                    ucpUrl = 'https://' + config['aws.dockerUCP']
                     isExecuteSuccess = self.addManagerNode( logger, config, ucpUrl, ucpPassword, password, host)  # <-- ucp url
     
-                if isExecuteSuccess is True and ucpInstalled is False:
-                    ucpUrl = 'https://' + host
-                    ucpInstalled = True
+                #if isExecuteSuccess is True and ucpInstalled is False:
+                #    ucpUrl = 'https://' + host
+                #    ucpInstalled = True
             
                 managerCounter += 1
     
@@ -124,7 +125,8 @@ class installNode(object):
         
                 else:
                     logger.error('An error was encountered installing the worker node')
-                    
+ 
+     
 #===============================================================================
 # Paramters:
 #   logger      - This is the logger used to record log messages.

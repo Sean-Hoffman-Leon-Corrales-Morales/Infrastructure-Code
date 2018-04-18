@@ -81,7 +81,13 @@ class docker_image(object):
         
         if 'error' in output.lower(): 
             raise ValueError('Unable to start docker.')
-                        
+    
+    def buildFromFile(self, path, repo, tag ):
+        cmd = 'docker build -f ' + path + ' -t ' + self.config["aws.dockerReg"] + '/' + repo + ':' + tag + ' .'
+        self.logger.debug("building docker file with: " + cmd)
+        output = os_executor.executeCmd(self.logger, cmd)
+        return output
+    
     def buildFromRepo(self, URLs, folder, repo, tag):
         buildDir = self.config["download.location"] + '/' + folder
         cmd = 'mkdir ' + buildDir
@@ -132,6 +138,19 @@ class docker_image(object):
         url = "https://" + self.config["aws.dockerReg"] + '/api/v0/repositories/' + org
         payload = repo
         return req.authPost(self.logger, url, payload, self.config['docker.ucp.user'], self.dockerPassword)        
+    
+    def enableHRM(self):
+        req = http_request.http_request()
+        loginURL = "https://" + self.config["aws.dockerUCP"] + '/auth/login'
+        headers = {'Content-Type': 'application/json'}
+        payload = {'password': self.dockerPassword, 'username': self.config['docker.ucp.user']}
+        response = req.post(self.logger, loginURL, payload, headers)
+        if response != None:
+            authToken = response['auth_token']  
+            url = "https://" + self.config["aws.dockerUCP"] + '/api/hrm'
+            headers = {'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json'}
+            payload = {"HTTPPort":80,"HTTPSPort":8443}
+            return req.post(self.logger, url, payload, headers)
 
     def getIp(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
