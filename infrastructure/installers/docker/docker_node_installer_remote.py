@@ -83,6 +83,8 @@ class installNode(object):
                                        workers['DmzCount'], workers['ProdCount'])
         workerCount = len(workerHosts)
         logger.debug('building ' + str(workerCount) + ' Docker managers')
+        if ucpUrl is None or "":
+            ucpUrl = 'https://' + config['aws.dockerUCP']
         for host in workerHosts: 
             logger.debug('Connecting to host ' + host + ' counter is at: ' + str(workerCounter))
             isExecuteSuccess = executeDockerInstall(logger, config, host, password)
@@ -142,6 +144,8 @@ class installNode(object):
     def getAuthToken(self, logger, config, ucpUrl, ucpPassword):
         logger.debug('+++ Getting Auth Token +++')
         authToken = None
+        if ucpUrl is None or "":
+            ucpUrl = "https://" + config['aws.dockerUCP']
         requestUrl = ucpUrl + '/auth/login'
         headers = {'Content-Type': 'application/json'}
         payload = {'password': ucpPassword, 'username': config['docker.ucp.user']}
@@ -173,11 +177,12 @@ class installNode(object):
 #===============================================================================
     def registerWithDTR(self, logger, config, host, dtrHost, dtrIp, ucpPassword, password, local = False):
         logger.debug('+++ Beginning registration of ' + str(dtrIp) + ' with DTR +++')
-        # this was dtrHost
-        hostname = socket.gethostbyaddr(dtrIp)[0]
+        if dtrHost is None or "":
+            dtrHost = config["aws.dockerReg"]
         
         # I know this sucks.  But I will remove the additional parameters once we test this and it working.
         if dtrHost is dtrIp:
+            hostname = socket.gethostbyaddr(dtrIp)[0]
             dtrHost = hostname
         
         url = 'https://' + dtrHost + '/ca'
@@ -379,6 +384,8 @@ class installNode(object):
         authToken = self.getAuthToken(logger, config, ucpUrl, ucpPassword)
         headers = {'Authorization': 'Bearer ' + authToken , 'Content-Type': 'application/json'}
         nodesUpdateURL = ""
+        if ucpUrl is None or "":
+            ucpUrl = "https://" + config["aws.dockerUCP"]
         nodesURL = ucpUrl + '/nodes'
         keyLabel = config['docker.infrastructure.label']
         response = self.requester.get(logger, nodesURL, headers)

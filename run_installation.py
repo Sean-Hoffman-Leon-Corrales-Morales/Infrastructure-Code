@@ -53,22 +53,18 @@ def runPreInstall(inputs):
     managerDmzCount = args.managerDmzCount
     managerProdCount = args.managerProdCount
     loadDtrPath = args.loadDtrPath
-    if licenseFilePath:
-    # Decide if you want to keep this if here.  You can remove it if necessary.
-    # if os.path.isfile(licenseFilePath):
-        isExecuteSuccess = installPythonPackages()
+
+    isExecuteSuccess = installPythonPackages()
+    
+    if isExecuteSuccess is True:
+        sys.argv = [password, dockerPassword, licenseFilePath, dtrCount, workerDevCount, workerQaCount,
+                    workerStressCount, workerDmzCount, workerProdCount, managerDevCount, managerQaCount, 
+                    managerStressCount, managerDmzCount, managerProdCount, loadDtrPath]
+        execfile('execute.py')
         
-        if isExecuteSuccess is True:
-            sys.argv = [password, dockerPassword, licenseFilePath, dtrCount, workerDevCount, workerQaCount,
-                        workerStressCount, workerDmzCount, workerProdCount, managerDevCount, managerQaCount, 
-                        managerStressCount, managerDmzCount, managerProdCount, loadDtrPath]
-            execfile('execute.py')
-            
-        else:
-            print 'The necessary python packages were not installed.'
-              
     else:
-        print 'Check the input parameters and retry. There is a parameter(s) missing'
+        print 'The necessary python packages were not installed.'
+              
     
     
 if __name__ == '__main__':

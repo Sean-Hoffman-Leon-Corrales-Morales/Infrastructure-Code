@@ -124,7 +124,7 @@ if __name__ == '__main__':
     loadDtrPath = sys.argv[14]
     logger.debug('Password: ' + osPassword)
     logger.debug('Docker Password: ' + dockerPassword)
-    logger.debug('License file path ' + licenseFilePath)
+    logger.debug('License file path ' + str(licenseFilePath))
     logger.debug('DTR Count ' + str(dtrCount))
     logger.debug('Worker Total Count ' + str(workers['DevCount'] + workers['QaCount'] + workers['StressCount'] + workers['DmzCount'] + workers['ProdCount']))
     logger.debug('Manager Total Count ' + str(managers['DevCount'] + managers['QaCount'] + managers['StressCount'] + managers['DmzCount'] + managers['ProdCount']))
