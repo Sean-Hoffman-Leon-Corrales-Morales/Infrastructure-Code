@@ -27,6 +27,7 @@ class docker_image(object):
         self.config = config
         self.dockerPassword = dockerPassword
         self.osPassword = osPassword
+        self.loggedIn = False
         
         '''
         @summary: description: 
@@ -35,9 +36,11 @@ class docker_image(object):
         '''
     def installDockerLocal(self):
         self.logger.debug("+++installing Docker localy+++")
-        cmd = "sudo yum remove docker docker-common docker-selinux docker-engine-selinux ocker-engine docker-ce docker-ee && rm -rf /var/lib/docker"
+        
+        #I'm removing the command to remove docker as it keeps causing issues when on re-install. 
+        #cmd = "sudo yum remove docker docker-common docker-selinux docker-engine-selinux ocker-engine docker-ce docker-ee && rm -rf /var/lib/docker"
         #try and remove old versions of docker.
-        os_executor.executeCmd(self.logger, cmd)
+        #os_executor.executeCmd(self.logger, cmd)
         
         cmd = "sh -c 'echo \"" + self.config['docker.ee.url'] + "/centos\" > /etc/yum/vars/dockerurl'"
         output = os_executor.executeCmd(self.logger, cmd)
@@ -83,7 +86,7 @@ class docker_image(object):
             raise ValueError('Unable to start docker.')
     
     def buildFromFile(self, path, repo, tag ):
-        cmd = 'docker build -f ' + path + ' -t ' + self.config["aws.dockerReg"] + '/' + repo + ':' + tag + ' .'
+        cmd = 'docker build -f ' + path + ' -t ' + self.config["aws.dockerReg"] + '/' + repo + ':' + str(tag) + ' .'
         self.logger.debug("building docker file with: " + cmd)
         output = os_executor.executeCmd(self.logger, cmd)
         return output
@@ -98,7 +101,7 @@ class docker_image(object):
             self.logger.debug("downloading asset with: " + cmd)
             output = os_executor.executeCmd(self.logger, cmd)
         
-        cmd = 'docker build -f ' + buildDir + '/Dockerfile -t ' + self.config["aws.dockerReg"] + '/' + repo + ':' + tag + ' .'
+        cmd = 'docker build -f ' + buildDir + '/Dockerfile -t ' + self.config["aws.dockerReg"] + '/' + repo + ':' + str(tag) + ' .'
         self.logger.debug("building docker file with: " + cmd)
         output = os_executor.executeCmd(self.logger, cmd)
         return output
@@ -110,11 +113,13 @@ class docker_image(object):
         dtrHost = self.config["aws.dockerReg"]
         dtrIp = socket.gethostbyname(dtrHost)
         self.logger.debug("host IP: " + host + " dtrIP: " + dtrIp + " dtrHost: " + dtrHost)
-        ir.registerWithDTR(self.logger, self.config, host, dtrHost, dtrIp, self.dockerPassword, self.osPassword, True)
-        cmd = "docker login " + dtrHost + " -u " + self.config["docker.ucp.user"] + " -p " + self.dockerPassword
-        self.logger.debug("running.." + cmd)
-        output = os_executor.executeCmd(self.logger, cmd)
-        self.logger.debug("got back : " + str(output))
+        if self.loggedIn is False:
+            ir.registerWithDTR(self.logger, self.config, host, dtrHost, dtrIp, self.dockerPassword, self.osPassword, True)
+            cmd = "docker login " + dtrHost + " -u " + self.config["docker.ucp.user"] + " -p " + self.dockerPassword
+            self.logger.debug("running.." + cmd)
+            output = os_executor.executeCmd(self.logger, cmd)
+            self.logger.debug("got back : " + str(output))
+            self.loggedIn = True
         cmd = "docker push " + dtrHost + '/' + imageName
         output = os_executor.executeCmd(self.logger, cmd)
 
